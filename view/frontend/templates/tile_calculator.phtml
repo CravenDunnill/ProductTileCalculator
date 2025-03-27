@@ -1,4 +1,6 @@
 <?php
+// Remove alternate cart button include
+?><?php
 /**
  * CravenDunnill ProductTileCalculator Extension
  *
@@ -88,19 +90,49 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 	</div>
 	
 	<div class="actions">
-		<button type="button" 
-				class="action primary" 
-				data-role="apply-calculator"
-				title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
-			<span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
-		</button>
-		
-		<!-- Hidden backup link for direct add to cart -->
-		<a href="<?= $block->escapeUrl($block->getBaseUrl() . 'checkout/cart/add/product/' . $block->getProduct()->getId() . '/qty/1?form_key=' . $block->getFormKey()) ?>" 
-		   class="action primary"
-		   id="calculator-direct-add"
-		   style="display: none;"><?= $block->escapeHtml(__('Add to Cart')) ?></a>
+		<a href="javascript:void(0);" 
+		   class="action primary" 
+		   id="update-quantity-link"
+		   onclick="updateQuantityFromCalculator(); return false;"
+		   title="<?= $block->escapeHtml(__('Update Quantity')) ?>">
+			<span><?= $block->escapeHtml(__('Update Quantity')) ?></span>
+		</a>
 	</div>
+
+<script type="text/javascript">
+function updateQuantityFromCalculator() {
+	// Get the quantity
+	var boxes = parseInt(document.getElementById('calculator-boxes').value) || 1;
+	var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
+	var totalTiles = boxes * tilesPerBox;
+	
+	console.log('Updating quantity to:', totalTiles, 'tiles');
+	
+	try {
+		// Get form elements
+		var qtyInput = document.getElementById('qty');
+		var addToCartBtn = document.getElementById('product-addtocart-button');
+		
+		if (qtyInput) {
+			// Update quantity in the standard form
+			qtyInput.value = totalTiles;
+			
+			// Enable the add to cart button if it exists
+			if (addToCartBtn) {
+				addToCartBtn.disabled = false;
+			}
+			
+			console.log('Quantity updated successfully');
+		} else {
+			console.error('Quantity input not found');
+		}
+	} catch (error) {
+		console.error('Error updating quantity:', error);
+	}
+	
+	return false;
+}
+</script>
 </div>
 
 <script type="text/x-magento-init">

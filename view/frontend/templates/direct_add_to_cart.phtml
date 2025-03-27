@@ -2,46 +2,49 @@
 require(['jquery', 'domReady!'], function ($) {
 	'use strict';
 
-	// Debug info - log selectors
-	console.log('Calculator initialized');
-	console.log('Add to cart button found:', $('[data-role="apply-calculator"]').length);
-	console.log('Product form found:', $('#product_addtocart_form').length);
-	console.log('Main add to cart button found:', $('.box-tocart .tocart').length);
-	
-	// Add click handler with event delegation
-	$(document).on('click', '[data-role="apply-calculator"]', function(e) {
-		e.preventDefault();
+	$(document).ready(function () {
+		// Debug info
+		console.log('Calculator quantity update script loaded');
 		
-		var boxes = parseInt($('#calculator-boxes').val()) || 1;
-		var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
-		var totalTiles = boxes * tilesPerBox;
-		
-		console.log('Adding to cart:', totalTiles, 'tiles');
-		
-		// Update the product quantity
-		$('#qty').val(totalTiles);
-		
-		// Method 1: Try to trigger the standard add to cart button
-		$('.box-tocart .tocart').trigger('click');
-		
-		// Method 3: Use the direct link as a last resort
-		setTimeout(function() {
+		// Add click handler for calculator's update quantity button
+		$(document).on('click', '[data-role="apply-calculator"]', function(e) {
+			// Prevent any default action or form submission
+			e.preventDefault();
+			e.stopPropagation();
+			
+			// Get the quantity
 			var boxes = parseInt($('#calculator-boxes').val()) || 1;
 			var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
 			var totalTiles = boxes * tilesPerBox;
 			
-			var directLink = $('#calculator-direct-add');
-			var directUrl = directLink.attr('href');
+			console.log('Updating quantity to:', totalTiles, 'tiles');
 			
-			// Update the URL with the correct quantity
-			directUrl = directUrl.replace(/\/qty\/\d+/, '/qty/' + totalTiles);
+			try {
+				// Get form elements
+				var qtyInput = document.getElementById('qty');
+				var addToCartBtn = document.getElementById('product-addtocart-button');
+				
+				if (qtyInput) {
+					// Update quantity in the standard form
+					qtyInput.value = totalTiles;
+					$(qtyInput).val(totalTiles);
+					
+					// Enable the add to cart button if it exists
+					if (addToCartBtn) {
+						addToCartBtn.disabled = false;
+						$(addToCartBtn).prop('disabled', false);
+					}
+					
+					console.log('Quantity updated successfully');
+				} else {
+					console.error('Quantity input not found');
+				}
+			} catch (error) {
+				console.error('Error updating quantity:', error);
+			}
 			
-			// Update the link and programmatically click it
-			directLink.attr('href', directUrl);
-			console.log('Direct add URL:', directUrl);
-			
-			window.location.href = directUrl;
-		}, 500);
+			return false;
+		});
 	});
 });
 </script>
