@@ -1,0 +1,246 @@
+<?php
+/**
+ * CravenDunnill ProductTileCalculator Extension
+ *
+ * @var $block \CravenDunnill\ProductTileCalculator\Block\TileCalculator
+ */
+
+// Debug product attributes
+$product = $block->getProduct();
+$debugData = [
+	'box_quantity' => $product->getData('box_quantity'),
+	'tile_per_m2' => $product->getData('tile_per_m2'),
+	'price_m2' => $product->getData('price_m2'),
+	'can_show' => $block->canShowCalculator()
+];
+
+// Fallback values for debugging/testing
+$boxQuantity = $product->getData('box_quantity') ?: 10;
+$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
+$pricePerM2 = $product->getData('price_m2') ?: 25;
+$pricePerTile = $block->getPricePerTile();
+$pricePerBox = $boxQuantity * $pricePerTile;
+?>
+
+<div class="tile-calculator-container" id="tile-calculator">
+	<div class="calculator-info">
+		<p><?= $block->escapeHtml(__('Tiles per box: %1', $boxQuantity)) ?></p>
+		<p><?= $block->escapeHtml(__('Tiles per m²: %1', $tilePerM2)) ?></p>
+		<p><?= __('Price per m²: %1', $block->formatPrice($pricePerM2)) ?></p>
+		<p><?= __('Price per box: %1', $block->formatPrice($pricePerBox)) ?></p>
+	</div>
+
+	<div class="calculator-inputs">
+		<div class="input-row" style="display: flex; justify-content: space-between; gap: 20px;">
+			<div class="input-group" style="flex: 1;">
+				<label for="calculator-m2"><?= $block->escapeHtml(__('Area in m²:')) ?></label>
+				<div class="quantity-controls">
+					<button type="button" class="action minus" data-role="decrease-m2">
+						<span>-</span>
+					</button>
+					<input type="number" 
+						   id="calculator-m2" 
+						   name="calculator-m2" 
+						   step="0.1" 
+						   min="0.1" 
+						   value="1" 
+						   class="input-text" 
+						   data-role="m2-input">
+					<button type="button" class="action plus" data-role="increase-m2">
+						<span>+</span>
+					</button>
+				</div>
+			</div>
+			
+			<div class="input-group" style="flex: 1;">
+				<label for="calculator-boxes"><?= $block->escapeHtml(__('Number of boxes:')) ?></label>
+				<div class="quantity-controls">
+					<button type="button" class="action minus" data-role="decrease-boxes">
+						<span>-</span>
+					</button>
+					<input type="number" 
+						   id="calculator-boxes" 
+						   name="calculator-boxes" 
+						   step="1" 
+						   min="1" 
+						   value="1" 
+						   class="input-text" 
+						   data-role="boxes-input">
+					<button type="button" class="action plus" data-role="increase-boxes">
+						<span>+</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="calculator-results">
+		<p class="result-text"><?= __('You will need:') ?> 
+			<span id="boxes-needed">1</span> <?= __('box(es)') ?> 
+			(<span id="area-covered">0</span> <?= __('m²') ?>)
+		</p>
+		<p class="total-price">
+			<?= __('Total price:') ?> 
+			<span id="total-price">
+				&pound;<?= number_format($pricePerBox, 2) ?>
+			</span>
+		</p>
+	</div>
+	
+	<div class="actions">
+		<button type="button" 
+				class="action primary" 
+				data-role="apply-calculator"
+				title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
+			<span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
+		</button>
+		
+		<!-- Hidden backup link for direct add to cart -->
+		<a href="<?= $block->escapeUrl($block->getBaseUrl() . 'checkout/cart/add/product/' . $block->getProduct()->getId() . '/qty/1?form_key=' . $block->getFormKey()) ?>" 
+		   class="action primary"
+		   id="calculator-direct-add"
+		   style="display: none;"><?= $block->escapeHtml(__('Add to Cart')) ?></a>
+	</div>
+</div>
+
+<script type="text/x-magento-init">
+{
+	"#tile-calculator": {
+		"tile-calculator": {
+			"boxQuantity": <?= /* @noEscape */ $boxQuantity ?>,
+			"tilePerM2": <?= /* @noEscape */ $tilePerM2 ?>,
+			"pricePerM2": <?= /* @noEscape */ $pricePerM2 ?>,
+			"pricePerBox": <?= /* @noEscape */ $pricePerBox ?>,
+			"priceFormat": <?= /* @noEscape */ $block->escapeJs(json_encode(['pattern' => '$%s', 'precision' => 2, 'requiredPrecision' => 2])) ?>
+		}
+	}
+}
+</script>
+
+<?php include('direct_calculator.js.phtml'); ?>
+
+<script>
+// Direct implementation for buttons
+require(['jquery'], function($) {
+	$(document).ready(function() {
+		var boxQuantity = <?= /* @noEscape */ $boxQuantity ?>;
+		var tilePerM2 = <?= /* @noEscape */ $tilePerM2 ?>;
+		var pricePerBox = <?= /* @noEscape */ $pricePerBox ?>;
+		
+		function updateDisplay() {
+			var boxes = parseInt($('#calculator-boxes').val()) || 1;
+			var m2 = parseFloat($('#calculator-m2').val()) || 0;
+			
+			// Calculate area covered by boxes
+			var areaCovered = (boxes * boxQuantity) / tilePerM2;
+			
+			// Update the display
+			$('#boxes-needed').text(boxes);
+			$('#area-covered').text(areaCovered.toFixed(2));
+			
+			// Format the price properly with HTML entity for pound
+			var totalPrice = boxes * pricePerBox;
+			$('#total-price').html('&pound;' + totalPrice.toFixed(2));
+		}
+		
+		// Input change handlers
+		$('#calculator-m2').on('input change', function(e) {
+			var m2 = parseFloat($(this).val()) || 0;
+			if (m2 <= 0) {
+				m2 = 0.1;
+				$(this).val(m2);
+			}
+			
+			// Calculate boxes needed
+			var tilesNeeded = m2 * tilePerM2;
+			var boxesNeeded = Math.ceil(tilesNeeded / boxQuantity);
+			
+			// Update boxes input without triggering its change event
+			$('#calculator-boxes').val(boxesNeeded);
+			
+			updateDisplay();
+		});
+		
+		$('#calculator-boxes').on('input change', function(e) {
+			var boxes = parseInt($(this).val()) || 1;
+			if (boxes <= 0) {
+				boxes = 1;
+				$(this).val(boxes);
+			}
+			
+			// Calculate area
+			var tilesTotal = boxes * boxQuantity;
+			var m2 = tilesTotal / tilePerM2;
+			
+			// Update m2 input without triggering its change event
+			$('#calculator-m2').val(m2.toFixed(2));
+			
+			updateDisplay();
+		});
+		
+		// Button click handlers
+		$('[data-role="increase-m2"]').click(function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $input = $('#calculator-m2');
+			var val = parseFloat($input.val()) || 0;
+			$input.val((val + 0.1).toFixed(1)).trigger('change');
+			return false;
+		});
+		
+		$('[data-role="decrease-m2"]').click(function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $input = $('#calculator-m2');
+			var val = parseFloat($input.val()) || 0;
+			if (val > 0.1) {
+				$input.val((val - 0.1).toFixed(1)).trigger('change');
+			}
+			return false;
+		});
+		
+		$('[data-role="increase-boxes"]').click(function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $input = $('#calculator-boxes');
+			var val = parseInt($input.val()) || 1;
+			$input.val(val + 1).trigger('change');
+			return false;
+		});
+		
+		$('[data-role="decrease-boxes"]').click(function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $input = $('#calculator-boxes');
+			var val = parseInt($input.val()) || 1;
+			if (val > 1) {
+				$input.val(val - 1).trigger('change');
+			}
+			return false;
+		});
+		
+		$('[data-role="apply-calculator"]').click(function(e) {
+			e.preventDefault();
+			
+			var boxes = parseInt($('#calculator-boxes').val()) || 1;
+			var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
+			var totalTiles = boxes * tilesPerBox;
+			
+			// Set the quantity to the total number of tiles
+			$('#qty').val(totalTiles).trigger('change');
+			
+			// Trigger the original add to cart button click
+			setTimeout(function() {
+				$('.box-tocart button.tocart').click();
+			}, 100);
+		});
+		
+		// Initialize display on page load
+		updateDisplay();
+		
+		console.log('Inline calculator JS loaded');
+	});
+});
+</script>
+
+<?php include('direct_add_to_cart.phtml'); ?>

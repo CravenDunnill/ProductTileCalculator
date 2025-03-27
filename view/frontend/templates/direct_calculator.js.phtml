@@ -1,0 +1,38 @@
+<script>
+require(['jquery'], function($) {
+	'use strict';
+	
+	$(document).ready(function() {
+		// Direct JavaScript for buttons
+		$('[data-role="increase-m2"]').on('click', function() {
+			var $input = $('#calculator-m2');
+			var currentValue = parseFloat($input.val()) || 0;
+			$input.val((currentValue + 0.1).toFixed(1)).trigger('change');
+		});
+		
+		$('[data-role="decrease-m2"]').on('click', function() {
+			var $input = $('#calculator-m2');
+			var currentValue = parseFloat($input.val()) || 0;
+			if (currentValue > 0.1) {
+				$input.val((currentValue - 0.1).toFixed(1)).trigger('change');
+			}
+		});
+		
+		$('[data-role="increase-boxes"]').on('click', function() {
+			var $input = $('#calculator-boxes');
+			var currentValue = parseInt($input.val()) || 0;
+			$input.val(currentValue + 1).trigger('change');
+		});
+		
+		$('[data-role="decrease-boxes"]').on('click', function() {
+			var $input = $('#calculator-boxes');
+			var currentValue = parseInt($input.val()) || 0;
+			if (currentValue > 1) {
+				$input.val(currentValue - 1).trigger('change');
+			}
+		});
+		
+		console.log('Direct calculator JS loaded');
+	});
+});
+</script>

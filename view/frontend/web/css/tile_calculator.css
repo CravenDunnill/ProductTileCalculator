@@ -1,0 +1,108 @@
+/**
+ * CravenDunnill ProductTileCalculator Extension
+ */
+
+.tile-calculator-container {
+	margin-bottom: 20px;
+	padding: 15px;
+	border: 1px solid #e8e8e8;
+	background: #f8f8f8;
+	border-radius: 3px;
+}
+
+.tile-calculator-container h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+}
+
+.calculator-info {
+	margin-bottom: 15px;
+}
+
+.calculator-info p {
+	margin: 5px 0;
+}
+
+.calculator-inputs {
+	margin-bottom: 15px;
+}
+
+.calculator-inputs .input-group {
+	margin-bottom: 10px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.calculator-inputs label {
+	width: 120px;
+	font-weight: 600;
+}
+
+.quantity-controls {
+	display: flex;
+	align-items: center;
+}
+
+.quantity-controls button {
+	width: 40px;
+	height: 38px;
+	background: #f1f1f1;
+	border: 1px solid #d1d1d1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+.quantity-controls button:hover {
+	background: #e1e1e1;
+}
+
+.quantity-controls input {
+	width: 60px;
+	height: 38px;
+	text-align: center;
+	margin: 0 5px;
+	border: 1px solid #d1d1d1;
+}
+
+.calculator-results {
+	margin-bottom: 15px;
+	padding: 10px;
+	background: #fff;
+	border: 1px solid #e8e8e8;
+	border-radius: 3px;
+}
+
+.calculator-results .result-text {
+	margin-bottom: 5px;
+}
+
+.calculator-results .total-price {
+	font-weight: 600;
+	font-size: 16px;
+	color: #e02b27;
+}
+
+.calculator-container .actions {
+	margin-top: 15px;
+}
+
+@media (max-width: 480px) {
+	.calculator-inputs .input-group {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	
+	.calculator-inputs label {
+		width: 100%;
+		margin-bottom: 5px;
+	}
+	
+	.quantity-controls {
+		width: 100%;
+	}
+}

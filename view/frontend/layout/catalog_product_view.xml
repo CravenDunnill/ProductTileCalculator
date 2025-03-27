@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+	<head>
+		<css src="CravenDunnill_ProductTileCalculator::css/tile_calculator.css"/>
+	</head>
+	<body>
+		<referenceContainer name="product.info.main">
+			<block class="CravenDunnill\ProductTileCalculator\Block\TileCalculator" 
+				   name="product.tile.calculator" 
+				   after="product.collection.navigation" 
+				   template="CravenDunnill_ProductTileCalculator::tile_calculator.phtml">
+			</block>
+		</referenceContainer>
+		<referenceBlock name="product.info.addtocart">
+			<action method="setTemplate">
+				<argument name="template" xsi:type="string">CravenDunnill_ProductTileCalculator::catalog/product/view/addtocart.phtml</argument>
+			</action>
+		</referenceBlock>
+
+	</body>
+</page>

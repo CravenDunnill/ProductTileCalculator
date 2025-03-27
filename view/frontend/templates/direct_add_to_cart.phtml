@@ -1,0 +1,47 @@
+<script>
+require(['jquery', 'domReady!'], function ($) {
+	'use strict';
+
+	// Debug info - log selectors
+	console.log('Calculator initialized');
+	console.log('Add to cart button found:', $('[data-role="apply-calculator"]').length);
+	console.log('Product form found:', $('#product_addtocart_form').length);
+	console.log('Main add to cart button found:', $('.box-tocart .tocart').length);
+	
+	// Add click handler with event delegation
+	$(document).on('click', '[data-role="apply-calculator"]', function(e) {
+		e.preventDefault();
+		
+		var boxes = parseInt($('#calculator-boxes').val()) || 1;
+		var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
+		var totalTiles = boxes * tilesPerBox;
+		
+		console.log('Adding to cart:', totalTiles, 'tiles');
+		
+		// Update the product quantity
+		$('#qty').val(totalTiles);
+		
+		// Method 1: Try to trigger the standard add to cart button
+		$('.box-tocart .tocart').trigger('click');
+		
+		// Method 3: Use the direct link as a last resort
+		setTimeout(function() {
+			var boxes = parseInt($('#calculator-boxes').val()) || 1;
+			var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
+			var totalTiles = boxes * tilesPerBox;
+			
+			var directLink = $('#calculator-direct-add');
+			var directUrl = directLink.attr('href');
+			
+			// Update the URL with the correct quantity
+			directUrl = directUrl.replace(/\/qty\/\d+/, '/qty/' + totalTiles);
+			
+			// Update the link and programmatically click it
+			directLink.attr('href', directUrl);
+			console.log('Direct add URL:', directUrl);
+			
+			window.location.href = directUrl;
+		}, 500);
+	});
+});
+</script>
