@@ -13,6 +13,7 @@ use Magento\Catalog\Block\Product\Context;
 use Magento\Framework\Registry;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Model\Product\Type;
 
 class TileCalculator extends \Magento\Catalog\Block\Product\View
 {
@@ -45,6 +46,17 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	 * @var StoreManagerInterface
 	 */
 	protected $_storeManager;
+
+	/**
+	 * Required attribute codes for the calculator
+	 *
+	 * @var array
+	 */
+	protected $requiredAttributes = [
+		'box_quantity',
+		'tile_per_m2',
+		'price_m2'
+	];
 
 	/**
 	 * Constructor
@@ -111,22 +123,68 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	}
 
 	/**
+	 * Check if the product is a simple type
+	 * 
+	 * @return bool
+	 */
+	public function isSimpleProduct()
+	{
+		$product = $this->getProduct();
+		return $product && $product->getTypeId() === Type::TYPE_SIMPLE;
+	}
+
+	/**
+	 * Get missing required attributes for the calculator
+	 * 
+	 * @return array
+	 */
+	public function getMissingAttributes()
+	{
+		$product = $this->getProduct();
+		$missingAttributes = [];
+		
+		if (!$product) {
+			return $this->requiredAttributes;
+		}
+		
+		foreach ($this->requiredAttributes as $attribute) {
+			$value = $product->getData($attribute);
+			if (empty($value) && $value !== '0') {
+				$missingAttributes[] = $attribute;
+			}
+		}
+		
+		return $missingAttributes;
+	}
+
+	/**
+	 * Get attribute labels for display in error messages
+	 * 
+	 * @return array
+	 */
+	public function getAttributeLabels()
+	{
+		return [
+			'box_quantity' => __('Tiles per Box'),
+			'tile_per_m2' => __('Tiles per m²'),
+			'price_m2' => __('Price per m²')
+		];
+	}
+
+	/**
 	 * Check if product has tile calculator attributes
 	 *
 	 * @return bool
 	 */
 	public function canShowCalculator()
 	{
-		$product = $this->getProduct();
+		// Only show calculator for Simple product types
+		if (!$this->isSimpleProduct()) {
+			return false;
+		}
 		
-		// For initial testing, always show the calculator
-		return true;
-		
-		// Uncomment for production:
-		// return $product 
-		//     && $product->getData('box_quantity') 
-		//     && $product->getData('tile_per_m2') 
-		//     && $product->getData('price_m2');
+		// Check if any required attributes are missing
+		return empty($this->getMissingAttributes());
 	}
 	
 	/**

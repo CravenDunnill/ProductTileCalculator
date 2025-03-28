@@ -8,45 +8,88 @@
 // Get the product from the block
 $product = $block->getProduct();
 
-// Fallback values for debugging/testing
-$boxQuantity = $product->getData('box_quantity') ?: 10;
-$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
-$pricePerM2 = $product->getData('price_m2') ?: 25;
-$pricePerTile = $block->getPricePerTile();
-$pricePerBox = $boxQuantity * $pricePerTile;
+// Check if it's a simple product first
+if (!$block->isSimpleProduct()) {
+	return; // Only show calculator or warnings for simple products
+}
+
+// Get missing attributes
+$missingAttributes = $block->getMissingAttributes();
+$hasAllAttributes = empty($missingAttributes);
+
+// If we have all required attributes, show the calculator
+if ($hasAllAttributes) {
+	// Fallback values for debugging/testing
+	$boxQuantity = $product->getData('box_quantity') ?: 10;
+	$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
+	$pricePerM2 = $product->getData('price_m2') ?: 25;
+	$pricePerTile = $block->getPricePerTile();
+	$pricePerBox = $boxQuantity * $pricePerTile;
 ?>
 
-<div class="tile-calculator-container" id="tile-calculator">
-	<div class="calculator-info">
-		<p><?= $block->escapeHtml(__('Tiles per box: %1', $boxQuantity)) ?></p>
-		<p><?= $block->escapeHtml(__('Tiles per m²: %1', $tilePerM2)) ?></p>
-		<p><?= __('Price per m²: %1', $block->formatPrice($pricePerM2)) ?></p>
-		<p><?= __('Price per box: %1', $block->formatPrice($pricePerBox)) ?></p>
-	</div>
+<style>
+	/* Override default styles to force labels above inputs */
+	.tile-calculator-container .input-group {
+		display: block !important; /* Force block display */
+		margin-bottom: 15px;
+	}
+	
+	.tile-calculator-container .input-group label {
+		display: block !important; /* Force block display */
+		width: 100% !important;
+		margin-bottom: 8px;
+		font-weight: 600;
+	}
+	
+	.tile-calculator-container .quantity-controls {
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+	
+	/* Make input fields double width */
+	.tile-calculator-container .quantity-controls input {
+		width: 120px !important; /* Double the original width */
+		height: 38px;
+		text-align: center;
+		margin: 0 5px;
+	}
+	
+	/* Results text styling */
+	.tile-calculator-container .result-text {
+		font-size: 16px;
+		margin: 15px 0;
+		text-align: center;
+	}
+	
+	.tile-calculator-container .result-text strong {
+		font-weight: bold;
+	}
+	
+	/* Full width button styling */
+	.tile-calculator-container .actions {
+		margin-top: 20px;
+		width: 100%;
+	}
+	
+	.tile-calculator-container .actions a {
+		display: block !important;
+		width: 100% !important;
+		text-align: center;
+		padding: 12px 0;
+		font-size: 16px;
+	}
+</style>
 
+<div class="tile-calculator-container" id="tile-calculator">
 	<div class="calculator-inputs">
 		<div class="input-row" style="display: flex; justify-content: space-between; gap: 20px;">
+			<!-- Number of Boxes (left) -->
 			<div class="input-group" style="flex: 1;">
-				<label for="calculator-m2"><?= $block->escapeHtml(__('Area in m²:')) ?></label>
-				<div class="quantity-controls">
-					<button type="button" class="action minus" id="decrease-m2">
-						<span>-</span>
-					</button>
-					<input type="number" 
-						   id="calculator-m2" 
-						   name="calculator-m2" 
-						   step="0.1" 
-						   min="0.1" 
-						   value="1" 
-						   class="input-text">
-					<button type="button" class="action plus" id="increase-m2">
-						<span>+</span>
-					</button>
-				</div>
-			</div>
-			
-			<div class="input-group" style="flex: 1;">
-				<label for="calculator-boxes"><?= $block->escapeHtml(__('Number of boxes:')) ?></label>
+				<!-- Updated label to include price per box and tiles per box -->
+				<label for="calculator-boxes">
+					<?= __('&pound;%1 per Box (%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+				</label>
 				<div class="quantity-controls">
 					<button type="button" class="action minus" id="decrease-boxes">
 						<span>-</span>
@@ -63,28 +106,45 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 					</button>
 				</div>
 			</div>
+			
+			<!-- Area in m² (right) -->
+			<div class="input-group" style="flex: 1;">
+				<!-- Updated label to include price per m² -->
+				<label for="calculator-m2">
+					<?= __('&pound;%1 per m²', number_format($pricePerM2, 2)) ?>
+				</label>
+				<div class="quantity-controls">
+					<button type="button" class="action minus" id="decrease-m2">
+						<span>-</span>
+					</button>
+					<input type="number" 
+						   id="calculator-m2" 
+						   name="calculator-m2" 
+						   step="0.1" 
+						   min="0.1" 
+						   value="1" 
+						   class="input-text">
+					<button type="button" class="action plus" id="increase-m2">
+						<span>+</span>
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<div class="calculator-results">
-		<p class="result-text"><?= __('You will need:') ?> 
-			<span id="boxes-needed">1</span> <?= __('box(es)') ?> 
-			(<span id="area-covered">0</span> <?= __('m²') ?>)
-		</p>
-		<p class="total-price">
-			<?= __('Total price:') ?> 
-			<span id="total-price">
-				&pound;<?= number_format($pricePerBox, 2) ?>
-			</span>
-		</p>
-	</div>
+	<!-- Removed the box styling, just using a paragraph with the result text -->
+	<p class="result-text">
+		<strong><span id="boxes-needed">1</span> <span id="box-text">box</span></strong> 
+		<?= __('will cover') ?> 
+		<strong><span id="area-covered">0</span> m²</strong>
+	</p>
 	
 	<div class="actions">
 		<a href="javascript:void(0);" 
 		   class="action primary" 
 		   id="update-quantity-link"
-		   title="<?= $block->escapeHtml(__('Update Quantity')) ?>">
-			<span><?= $block->escapeHtml(__('Update Quantity')) ?></span>
+		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
+			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($pricePerBox, 2)) ?></span>
 		</a>
 	</div>
 </div>
@@ -105,8 +165,9 @@ require(['jquery'], function($) {
 		var $m2Input = $('#calculator-m2');
 		var $boxesInput = $('#calculator-boxes');
 		var $boxesNeeded = $('#boxes-needed');
+		var $boxText = $('#box-text');
 		var $areaCovered = $('#area-covered');
-		var $totalPrice = $('#total-price');
+		var $updateQuantityText = $('#update-quantity-text');
 		
 		// Functions
 		function calculateM2FromBoxes(boxes) {
@@ -148,9 +209,20 @@ require(['jquery'], function($) {
 		}
 		
 		function updateResults(boxes, m2) {
+			// Update boxes needed text
 			$boxesNeeded.text(boxes);
+			
+			// Update box/boxes text for plural handling
+			var boxText = (boxes > 1) ? 'boxes' : 'box';
+			$boxText.text(boxText);
+			
+			// Update area covered
 			$areaCovered.text(m2.toFixed(2));
-			$totalPrice.html('&pound;' + (boxes * pricePerBox).toFixed(2));
+			
+			// Update total price on button with pluralization and em dash
+			var totalPrice = boxes * pricePerBox;
+			var buttonBoxText = (boxes > 1) ? 'Boxes' : 'Box';
+			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
 		}
 		
 		function updateQuantity() {
@@ -208,3 +280,24 @@ require(['jquery'], function($) {
 	});
 });
 </script>
+
+<?php 
+} else {
+	// Show a warning message about missing attributes
+	$attributeLabels = $block->getAttributeLabels();
+	$missingLabels = [];
+	
+	foreach ($missingAttributes as $attribute) {
+		$missingLabels[] = isset($attributeLabels[$attribute]) ? $attributeLabels[$attribute] : $attribute;
+	}
+	
+	$missingText = implode(', ', $missingLabels);
+?>
+
+<div class="message warning">
+	<span><?= $block->escapeHtml(__('Sorry, we can\'t show the Tile Calculator on this product as we\'re missing data for %1.', $missingText)) ?></span>
+</div>
+
+<?php
+}
+?>
