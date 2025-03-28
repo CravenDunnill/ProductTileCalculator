@@ -104,69 +104,92 @@ define([
 			$areaCovered.text(m2.toFixed(2));
 			$totalPrice.html(formatPrice(boxes * pricePerBox));
 		}
-		
-		/**
-		 * Update the area covered based on the current number of boxes
-		 */
-		function updateAreaCovered() {
-			var boxes = parseInt($boxesInput.val()) || 1;
-			var area = calculateM2FromBoxes(boxes);
-			$areaCovered.text(area.toFixed(2));
-		}
 
 		/**
 		 * Apply the calculated quantity to the product form
 		 */
 		function applyToCart() {
 			var boxes = parseInt($boxesInput.val()) || 1;
-			$qtyInput.val(boxes).trigger('change');
+			var tilesPerBox = boxQuantity;
+			var totalTiles = boxes * tilesPerBox;
+			
+			$qtyInput.val(totalTiles);
+			
+			// Enable the add to cart button if it exists
+			var addToCartBtn = document.getElementById('product-addtocart-button');
+			if (addToCartBtn) {
+				addToCartBtn.disabled = false;
+			}
 		}
 
 		/**
 		 * Increase m² value
+		 * @param {Event} e
 		 */
-		function increaseM2() {
+		function increaseM2(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			var currentValue = parseFloat($m2Input.val()) || 0;
 			$m2Input.val((currentValue + 0.1).toFixed(1));
 			updateFromM2();
+			return false;
 		}
 		
 		/**
 		 * Decrease m² value
+		 * @param {Event} e
 		 */
-		function decreaseM2() {
+		function decreaseM2(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			var currentValue = parseFloat($m2Input.val()) || 0;
 			if (currentValue > 0.1) {
 				$m2Input.val((currentValue - 0.1).toFixed(1));
 				updateFromM2();
 			}
+			return false;
 		}
 		
 		/**
 		 * Increase boxes value
+		 * @param {Event} e
 		 */
-		function increaseBoxes() {
+		function increaseBoxes(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			var currentValue = parseInt($boxesInput.val()) || 0;
 			$boxesInput.val(currentValue + 1);
 			updateFromBoxes();
+			return false;
 		}
 		
 		/**
 		 * Decrease boxes value
+		 * @param {Event} e
 		 */
-		function decreaseBoxes() {
+		function decreaseBoxes(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			var currentValue = parseInt($boxesInput.val()) || 0;
 			if (currentValue > 1) {
 				$boxesInput.val(currentValue - 1);
 				updateFromBoxes();
 			}
+			return false;
 		}
 
-		// Event Bindings
+		// First, unbind any existing event handlers to avoid duplicates
+		$m2Input.off('input change');
+		$boxesInput.off('input change');
+		$increaseM2Btn.off('click');
+		$decreaseM2Btn.off('click');
+		$increaseBoxesBtn.off('click');
+		$decreaseBoxesBtn.off('click');
+		$applyBtn.off('click');
+		
+		// Now bind our event handlers
 		$m2Input.on('input change', updateFromM2);
 		$boxesInput.on('input change', updateFromBoxes);
-		
-		// Direct event binding for buttons
 		$increaseM2Btn.on('click', increaseM2);
 		$decreaseM2Btn.on('click', decreaseM2);
 		$increaseBoxesBtn.on('click', increaseBoxes);
@@ -175,16 +198,7 @@ define([
 
 		// Initial calculation
 		updateFromBoxes();
-		updateAreaCovered();
 		
-		console.log('Tile calculator initialized');
-		
-		// Debug info
-		console.log('Button selectors:', {
-			increaseM2: $increaseM2Btn.length,
-			decreaseM2: $decreaseM2Btn.length,
-			increaseBoxes: $increaseBoxesBtn.length,
-			decreaseBoxes: $decreaseBoxesBtn.length
-		});
+		console.log('Tile calculator initialized with boxQuantity:', boxQuantity);
 	};
 });

@@ -1,20 +1,12 @@
 <?php
-// Remove alternate cart button include
-?><?php
 /**
  * CravenDunnill ProductTileCalculator Extension
  *
  * @var $block \CravenDunnill\ProductTileCalculator\Block\TileCalculator
  */
 
-// Debug product attributes
+// Get the product from the block
 $product = $block->getProduct();
-$debugData = [
-	'box_quantity' => $product->getData('box_quantity'),
-	'tile_per_m2' => $product->getData('tile_per_m2'),
-	'price_m2' => $product->getData('price_m2'),
-	'can_show' => $block->canShowCalculator()
-];
 
 // Fallback values for debugging/testing
 $boxQuantity = $product->getData('box_quantity') ?: 10;
@@ -37,7 +29,7 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 			<div class="input-group" style="flex: 1;">
 				<label for="calculator-m2"><?= $block->escapeHtml(__('Area in m²:')) ?></label>
 				<div class="quantity-controls">
-					<button type="button" class="action minus" data-role="decrease-m2">
+					<button type="button" class="action minus" id="decrease-m2">
 						<span>-</span>
 					</button>
 					<input type="number" 
@@ -46,9 +38,8 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 						   step="0.1" 
 						   min="0.1" 
 						   value="1" 
-						   class="input-text" 
-						   data-role="m2-input">
-					<button type="button" class="action plus" data-role="increase-m2">
+						   class="input-text">
+					<button type="button" class="action plus" id="increase-m2">
 						<span>+</span>
 					</button>
 				</div>
@@ -57,7 +48,7 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 			<div class="input-group" style="flex: 1;">
 				<label for="calculator-boxes"><?= $block->escapeHtml(__('Number of boxes:')) ?></label>
 				<div class="quantity-controls">
-					<button type="button" class="action minus" data-role="decrease-boxes">
+					<button type="button" class="action minus" id="decrease-boxes">
 						<span>-</span>
 					</button>
 					<input type="number" 
@@ -66,9 +57,8 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 						   step="1" 
 						   min="1" 
 						   value="1" 
-						   class="input-text" 
-						   data-role="boxes-input">
-					<button type="button" class="action plus" data-role="increase-boxes">
+						   class="input-text">
+					<button type="button" class="action plus" id="increase-boxes">
 						<span>+</span>
 					</button>
 				</div>
@@ -93,186 +83,128 @@ $pricePerBox = $boxQuantity * $pricePerTile;
 		<a href="javascript:void(0);" 
 		   class="action primary" 
 		   id="update-quantity-link"
-		   onclick="updateQuantityFromCalculator(); return false;"
 		   title="<?= $block->escapeHtml(__('Update Quantity')) ?>">
 			<span><?= $block->escapeHtml(__('Update Quantity')) ?></span>
 		</a>
 	</div>
-
-<script type="text/javascript">
-function updateQuantityFromCalculator() {
-	// Get the quantity
-	var boxes = parseInt(document.getElementById('calculator-boxes').value) || 1;
-	var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
-	var totalTiles = boxes * tilesPerBox;
-	
-	console.log('Updating quantity to:', totalTiles, 'tiles');
-	
-	try {
-		// Get form elements
-		var qtyInput = document.getElementById('qty');
-		var addToCartBtn = document.getElementById('product-addtocart-button');
-		
-		if (qtyInput) {
-			// Update quantity in the standard form
-			qtyInput.value = totalTiles;
-			
-			// Enable the add to cart button if it exists
-			if (addToCartBtn) {
-				addToCartBtn.disabled = false;
-			}
-			
-			console.log('Quantity updated successfully');
-		} else {
-			console.error('Quantity input not found');
-		}
-	} catch (error) {
-		console.error('Error updating quantity:', error);
-	}
-	
-	return false;
-}
-</script>
 </div>
 
-<script type="text/x-magento-init">
-{
-	"#tile-calculator": {
-		"tile-calculator": {
-			"boxQuantity": <?= /* @noEscape */ $boxQuantity ?>,
-			"tilePerM2": <?= /* @noEscape */ $tilePerM2 ?>,
-			"pricePerM2": <?= /* @noEscape */ $pricePerM2 ?>,
-			"pricePerBox": <?= /* @noEscape */ $pricePerBox ?>,
-			"priceFormat": <?= /* @noEscape */ $block->escapeJs(json_encode(['pattern' => '$%s', 'precision' => 2, 'requiredPrecision' => 2])) ?>
-		}
-	}
-}
-</script>
-
-<?php include('direct_calculator.js.phtml'); ?>
-
 <script>
-// Direct implementation for buttons
 require(['jquery'], function($) {
+	'use strict';
+	
 	$(document).ready(function() {
+		console.log('Tile calculator script loaded');
+		
+		// Configuration values
 		var boxQuantity = <?= /* @noEscape */ $boxQuantity ?>;
 		var tilePerM2 = <?= /* @noEscape */ $tilePerM2 ?>;
 		var pricePerBox = <?= /* @noEscape */ $pricePerBox ?>;
 		
-		function updateDisplay() {
-			var boxes = parseInt($('#calculator-boxes').val()) || 1;
-			var m2 = parseFloat($('#calculator-m2').val()) || 0;
-			
-			// Calculate area covered by boxes
-			var areaCovered = (boxes * boxQuantity) / tilePerM2;
-			
-			// Update the display
-			$('#boxes-needed').text(boxes);
-			$('#area-covered').text(areaCovered.toFixed(2));
-			
-			// Format the price properly with HTML entity for pound
-			var totalPrice = boxes * pricePerBox;
-			$('#total-price').html('&pound;' + totalPrice.toFixed(2));
+		// Elements
+		var $m2Input = $('#calculator-m2');
+		var $boxesInput = $('#calculator-boxes');
+		var $boxesNeeded = $('#boxes-needed');
+		var $areaCovered = $('#area-covered');
+		var $totalPrice = $('#total-price');
+		
+		// Functions
+		function calculateM2FromBoxes(boxes) {
+			var tilesInBoxes = boxes * boxQuantity;
+			return tilesInBoxes / tilePerM2;
 		}
 		
-		// Input change handlers
-		$('#calculator-m2').on('input change', function(e) {
-			var m2 = parseFloat($(this).val()) || 0;
+		function calculateBoxesFromM2(squareMeters) {
+			var tilesNeeded = squareMeters * tilePerM2;
+			return Math.ceil(tilesNeeded / boxQuantity);
+		}
+		
+		function updateFromM2() {
+			console.log('Updating from m²');
+			var m2 = parseFloat($m2Input.val()) || 0;
+			
 			if (m2 <= 0) {
 				m2 = 0.1;
-				$(this).val(m2);
+				$m2Input.val(m2);
 			}
 			
-			// Calculate boxes needed
-			var tilesNeeded = m2 * tilePerM2;
-			var boxesNeeded = Math.ceil(tilesNeeded / boxQuantity);
-			
-			// Update boxes input without triggering its change event
-			$('#calculator-boxes').val(boxesNeeded);
-			
-			updateDisplay();
-		});
+			var boxes = calculateBoxesFromM2(m2);
+			$boxesInput.val(boxes);
+			updateResults(boxes, m2);
+		}
 		
-		$('#calculator-boxes').on('input change', function(e) {
-			var boxes = parseInt($(this).val()) || 1;
+		function updateFromBoxes() {
+			console.log('Updating from boxes');
+			var boxes = parseInt($boxesInput.val()) || 0;
+			
 			if (boxes <= 0) {
 				boxes = 1;
-				$(this).val(boxes);
+				$boxesInput.val(boxes);
 			}
 			
-			// Calculate area
-			var tilesTotal = boxes * boxQuantity;
-			var m2 = tilesTotal / tilePerM2;
+			var m2 = calculateM2FromBoxes(boxes);
+			$m2Input.val(m2.toFixed(2));
+			updateResults(boxes, m2);
+		}
+		
+		function updateResults(boxes, m2) {
+			$boxesNeeded.text(boxes);
+			$areaCovered.text(m2.toFixed(2));
+			$totalPrice.html('&pound;' + (boxes * pricePerBox).toFixed(2));
+		}
+		
+		function updateQuantity() {
+			var boxes = parseInt($boxesInput.val()) || 1;
+			var totalTiles = boxes * boxQuantity;
 			
-			// Update m2 input without triggering its change event
-			$('#calculator-m2').val(m2.toFixed(2));
+			$('#qty').val(totalTiles);
+			$('#product-addtocart-button').prop('disabled', false);
 			
-			updateDisplay();
+			console.log('Updated quantity to', totalTiles, 'tiles');
+		}
+		
+		// Button event handlers
+		$('#increase-m2').on('click', function(e) {
+			e.preventDefault();
+			var currentValue = parseFloat($m2Input.val()) || 0;
+			$m2Input.val((currentValue + 0.1).toFixed(1)).trigger('change');
 		});
 		
-		// Button click handlers
-		$('[data-role="increase-m2"]').click(function(e) {
+		$('#decrease-m2').on('click', function(e) {
 			e.preventDefault();
-			e.stopPropagation();
-			var $input = $('#calculator-m2');
-			var val = parseFloat($input.val()) || 0;
-			$input.val((val + 0.1).toFixed(1)).trigger('change');
-			return false;
-		});
-		
-		$('[data-role="decrease-m2"]').click(function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			var $input = $('#calculator-m2');
-			var val = parseFloat($input.val()) || 0;
-			if (val > 0.1) {
-				$input.val((val - 0.1).toFixed(1)).trigger('change');
+			var currentValue = parseFloat($m2Input.val()) || 0;
+			if (currentValue > 0.1) {
+				$m2Input.val((currentValue - 0.1).toFixed(1)).trigger('change');
 			}
-			return false;
 		});
 		
-		$('[data-role="increase-boxes"]').click(function(e) {
+		$('#increase-boxes').on('click', function(e) {
 			e.preventDefault();
-			e.stopPropagation();
-			var $input = $('#calculator-boxes');
-			var val = parseInt($input.val()) || 1;
-			$input.val(val + 1).trigger('change');
-			return false;
+			var currentValue = parseInt($boxesInput.val()) || 0;
+			$boxesInput.val(currentValue + 1).trigger('change');
 		});
 		
-		$('[data-role="decrease-boxes"]').click(function(e) {
+		$('#decrease-boxes').on('click', function(e) {
 			e.preventDefault();
-			e.stopPropagation();
-			var $input = $('#calculator-boxes');
-			var val = parseInt($input.val()) || 1;
-			if (val > 1) {
-				$input.val(val - 1).trigger('change');
+			var currentValue = parseInt($boxesInput.val()) || 0;
+			if (currentValue > 1) {
+				$boxesInput.val(currentValue - 1).trigger('change');
 			}
-			return false;
 		});
 		
-		$('[data-role="apply-calculator"]').click(function(e) {
+		$('#update-quantity-link').on('click', function(e) {
 			e.preventDefault();
-			
-			var boxes = parseInt($('#calculator-boxes').val()) || 1;
-			var tilesPerBox = <?= /* @noEscape */ $boxQuantity ?>;
-			var totalTiles = boxes * tilesPerBox;
-			
-			// Set the quantity to the total number of tiles
-			$('#qty').val(totalTiles).trigger('change');
-			
-			// Trigger the original add to cart button click
-			setTimeout(function() {
-				$('.box-tocart button.tocart').click();
-			}, 100);
+			updateQuantity();
 		});
 		
-		// Initialize display on page load
-		updateDisplay();
+		// Input event handlers
+		$m2Input.on('input change', updateFromM2);
+		$boxesInput.on('input change', updateFromBoxes);
 		
-		console.log('Inline calculator JS loaded');
+		// Initial calculation
+		updateFromBoxes();
+		
+		console.log('Tile calculator initialized with boxQuantity:', boxQuantity);
 	});
 });
 </script>
-
-<?php include('direct_add_to_cart.phtml'); ?>
