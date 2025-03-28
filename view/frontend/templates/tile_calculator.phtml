@@ -28,6 +28,21 @@ if ($hasAllAttributes) {
 ?>
 
 <style>
+	/* Hide native product price and add to cart form */
+	.product-info-price,
+	#product_addtocart_form {
+		display: none !important;
+	}
+	
+	/* Remove all rounded corners */
+	.tile-calculator-container,
+	.tile-calculator-container .quantity-controls input,
+	.tile-calculator-container .quantity-controls button,
+	.tile-calculator-container .actions a,
+	.tile-calculator-container .message {
+		border-radius: 0 !important;
+	}
+	
 	/* Override default styles to force labels above inputs */
 	.tile-calculator-container .input-group {
 		display: block !important; /* Force block display */
@@ -142,7 +157,7 @@ if ($hasAllAttributes) {
 	<div class="actions">
 		<a href="javascript:void(0);" 
 		   class="action primary" 
-		   id="update-quantity-link"
+		   id="calculator-add-to-cart"
 		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
 			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($pricePerBox, 2)) ?></span>
 		</a>
@@ -168,6 +183,11 @@ require(['jquery'], function($) {
 		var $boxText = $('#box-text');
 		var $areaCovered = $('#area-covered');
 		var $updateQuantityText = $('#update-quantity-text');
+		var $addToCartButton = $('#calculator-add-to-cart');
+		
+		// Native form elements
+		var $qtyInput = $('#qty');
+		var $nativeAddToCartButton = $('#product-addtocart-button');
 		
 		// Functions
 		function calculateM2FromBoxes(boxes) {
@@ -225,14 +245,20 @@ require(['jquery'], function($) {
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
 		}
 		
-		function updateQuantity() {
+		function addToCart() {
 			var boxes = parseInt($boxesInput.val()) || 1;
 			var totalTiles = boxes * boxQuantity;
 			
-			$('#qty').val(totalTiles);
-			$('#product-addtocart-button').prop('disabled', false);
+			// Update the native quantity input
+			$qtyInput.val(totalTiles);
 			
-			console.log('Updated quantity to', totalTiles, 'tiles');
+			// Make sure the native add to cart button is enabled
+			$nativeAddToCartButton.prop('disabled', false);
+			
+			// Trigger the native add to cart button click
+			$nativeAddToCartButton.trigger('click');
+			
+			console.log('Adding to cart:', totalTiles, 'tiles (' + boxes + ' boxes)');
 		}
 		
 		// Button event handlers
@@ -264,9 +290,10 @@ require(['jquery'], function($) {
 			}
 		});
 		
-		$('#update-quantity-link').on('click', function(e) {
+		// Add to cart button click handler
+		$addToCartButton.on('click', function(e) {
 			e.preventDefault();
-			updateQuantity();
+			addToCart();
 		});
 		
 		// Input event handlers
