@@ -105,7 +105,7 @@ if ($hasAllAttributes) {
 			<div class="input-group" style="flex: 1;">
 				<!-- Updated label to include price per m² -->
 				<label for="calculator-m2">
-					<?= __('&pound;%1 per m²', number_format($pricePerM2, 2)) ?>
+					<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
 				</label>
 				<div class="quantity-controls">
 					<button type="button" class="action minus" id="decrease-m2">
@@ -114,9 +114,9 @@ if ($hasAllAttributes) {
 					<input type="text" 
 						   id="calculator-m2" 
 						   name="calculator-m2"
-						   value="0" 
+						   value="0.0" 
 						   class="input-text"
-						   style="text-align: center;">
+						   style="text-align: center; margin: 0 5px;">
 					<button type="button" class="action plus" id="increase-m2">
 						<span>+</span>
 					</button>
@@ -147,11 +147,11 @@ if ($hasAllAttributes) {
 		</div>
 	</div>
 
-	<!-- Result text display -->
+	<!-- Result text display using HTML sup tag for superscript -->
 	<p class="result-text">
 		<strong><span id="result-box-text">1 box</span></strong> 
-		<?= __('will cover') ?> 
-		<strong><span id="area-covered">1.1</span> m²</strong>
+		will cover 
+		<strong><span id="area-covered">1.1</span> m<sup>2</sup></strong>
 	</p>
 	
 	<div class="actions">
@@ -187,7 +187,7 @@ require(['jquery'], function($) {
 		var $qtyInput = $('#qty');
 		var $nativeAddToCartButton = $('#product-addtocart-button');
 		
-		// Functions
+		// Calculation Functions
 		function calculateM2FromBoxes(boxes) {
 			var tilesInBoxes = boxes * boxQuantity;
 			return tilesInBoxes / tilePerM2;
@@ -198,22 +198,33 @@ require(['jquery'], function($) {
 			return Math.ceil(tilesNeeded / boxQuantity);
 		}
 		
+		// Parsing Functions
 		function parseM2Input() {
-			// Extract numeric value only
 			var inputVal = $m2Input.val().replace(/[^\d.]/g, '');
 			return parseFloat(inputVal) || 0;
 		}
 		
 		function parseBoxesInput() {
-			// Extract numeric value only
 			var inputVal = $boxesInput.val().replace(/[^\d]/g, '');
 			return parseInt(inputVal) || 1;
+		}
+		
+		// Update Functions
+		function updateM2Display(value) {
+			// ALWAYS set as numeric only - NO UNITS
+			$m2Input.val(parseFloat(value).toFixed(1));
+		}
+		
+		function updateBoxesDisplay(value) {
+			// Set with "box" or "boxes" unit
+			var boxText = (value === 1) ? '1 box' : value + ' boxes';
+			$boxesInput.val(boxText);
 		}
 		
 		function updateFromM2() {
 			var m2 = parseM2Input();
 			
-			// Validate m2 input (can now be 0)
+			// Validate m2 input (can be 0)
 			if (m2 < 0) {
 				m2 = 0;
 			}
@@ -221,10 +232,11 @@ require(['jquery'], function($) {
 			// Calculate boxes (ensuring minimum of 1)
 			var boxes = Math.max(1, calculateBoxesFromM2(m2));
 			
-			// Update inputs with formatted values
-			$m2Input.val(m2.toFixed(1));
-			$boxesInput.val((boxes === 1) ? '1 box' : boxes + ' boxes');
+			// Update displays
+			updateM2Display(m2);
+			updateBoxesDisplay(boxes);
 			
+			// Update results
 			updateResults(boxes, m2);
 		}
 		
@@ -238,30 +250,29 @@ require(['jquery'], function($) {
 			
 			var m2 = calculateM2FromBoxes(boxes);
 			
-			// Update inputs with formatted values
-			$boxesInput.val((boxes === 1) ? '1 box' : boxes + ' boxes');
-			$m2Input.val(m2.toFixed(1));
+			// Update displays
+			updateBoxesDisplay(boxes);
+			updateM2Display(m2);
 			
+			// Update results
 			updateResults(boxes, m2);
 		}
 		
 		function updateResults(boxes, m2) {
-			// Calculate the exact area covered by the boxes (based on full boxes only)
+			// Calculate the exact area covered by the boxes
 			var exactAreaCovered = calculateM2FromBoxes(boxes);
 			
-			// Update the result text with correct singular/plural form
-			var resultBoxText = (boxes === 1) ? '1 box' : boxes + ' boxes';
-			$('#result-box-text').text(resultBoxText);
-			
-			// Always show the exact area covered by the boxes (based on full boxes)
+			// Update the result text
+			$('#result-box-text').text((boxes === 1) ? '1 box' : boxes + ' boxes');
 			$areaCovered.text(exactAreaCovered.toFixed(1));
 			
-			// Update total price on button with pluralization and em dash
+			// Update button text
 			var totalPrice = boxes * pricePerBox;
 			var buttonBoxText = (boxes === 1) ? 'Box' : 'Boxes';
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
 		}
 		
+		// Cart Function
 		function addToCart() {
 			var boxes = parseBoxesInput();
 			var totalTiles = boxes * boxQuantity;
@@ -274,16 +285,14 @@ require(['jquery'], function($) {
 			
 			// Trigger the native add to cart button click
 			$nativeAddToCartButton.trigger('click');
-			
-			console.log('Adding to cart:', totalTiles, 'tiles (' + boxes + ' boxes)');
 		}
 		
-		// Button event handlers
+		// Button Event Handlers
 		$('#increase-m2').on('click', function(e) {
 			e.preventDefault();
 			var currentValue = parseM2Input();
-			var newValue = (currentValue + 0.1).toFixed(1);
-			$m2Input.val(newValue);
+			var newValue = currentValue + 0.1;
+			updateM2Display(newValue);
 			updateFromM2();
 		});
 		
@@ -291,8 +300,8 @@ require(['jquery'], function($) {
 			e.preventDefault();
 			var currentValue = parseM2Input();
 			if (currentValue >= 0.1) {
-				var newValue = (Math.max(0, currentValue - 0.1)).toFixed(1);
-				$m2Input.val(newValue);
+				var newValue = Math.max(0, currentValue - 0.1);
+				updateM2Display(newValue);
 				updateFromM2();
 			}
 		});
@@ -301,8 +310,7 @@ require(['jquery'], function($) {
 			e.preventDefault();
 			var currentValue = parseBoxesInput();
 			var newValue = currentValue + 1;
-			var boxText = (newValue === 1) ? '1 box' : newValue + ' boxes';
-			$boxesInput.val(boxText);
+			updateBoxesDisplay(newValue);
 			updateFromBoxes();
 		});
 		
@@ -311,57 +319,59 @@ require(['jquery'], function($) {
 			var currentValue = parseBoxesInput();
 			if (currentValue > 1) {
 				var newValue = currentValue - 1;
-				var boxText = (newValue === 1) ? '1 box' : newValue + ' boxes';
-				$boxesInput.val(boxText);
+				updateBoxesDisplay(newValue);
 				updateFromBoxes();
 			}
 		});
 		
-		// Add to cart button click handler
+		// Add to Cart Button Handler
 		$addToCartButton.on('click', function(e) {
 			e.preventDefault();
 			addToCart();
 		});
 		
-		// Input event handlers with strict cleanup
-		$m2Input.on('input change', function() {
-			// Clean any non-numeric characters except decimal point
-			var cleanValue = $(this).val().replace(/[^\d.]/g, '');
-			var value = parseFloat(cleanValue) || 0;
-			if (value < 0) value = 0;
+		// Input Event Handlers
+		$m2Input.on('input', function() {
+			// Force numeric input only
+			var currentValue = $(this).val();
+			var cleanValue = currentValue.replace(/[^\d.]/g, '');
 			
-			// Set the clean value back to the input
-			$(this).val(value.toFixed(1));
+			// If non-numeric characters were found, update the input
+			if (cleanValue !== currentValue) {
+				$(this).val(cleanValue);
+			}
+		});
+		
+		$m2Input.on('change blur', function() {
+			// Format on change or blur
 			updateFromM2();
 		});
 		
 		$boxesInput.on('input change', function() {
 			var value = parseBoxesInput();
 			if (value < 1) value = 1;
-			
-			// Update with proper formatting
-			var boxText = (value === 1) ? '1 box' : value + ' boxes';
-			$(this).val(boxText);
-			
+			updateBoxesDisplay(value);
 			updateFromBoxes();
 		});
 		
-		// Special initialization function to set up initial display without updating m² input
+		// Initialize Calculator
 		function initializeCalculator() {
-			// Set the initial values directly
-			$boxesInput.val('1 box');
-			$m2Input.val('0');
+			// Set initial values
+			updateM2Display(0.0);
+			updateBoxesDisplay(1);
 			
-			// Calculate area covered by 1 box for the message
+			// Calculate area covered by 1 box
 			var exactAreaCovered = calculateM2FromBoxes(1);
 			
-			// Update just the message and button text
+			// Update result text
 			$('#result-box-text').text('1 box');
 			$areaCovered.text(exactAreaCovered.toFixed(1));
+			
+			// Update button text
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
 		}
 		
-		// Initialize the calculator with our special function
+		// Initialize
 		initializeCalculator();
 		
 		console.log('Tile calculator initialized with boxQuantity:', boxQuantity);
