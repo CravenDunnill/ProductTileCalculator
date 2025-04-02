@@ -43,6 +43,61 @@ if ($hasAllAttributes) {
 		border-radius: 0 !important;
 	}
 	
+	/* Change border color to dark blue */
+	.tile-calculator-container {
+		border: 1px solid #002C5A !important;
+	}
+	
+	/* Tile choices heading styling */
+	.tile-calculator-container h4 {
+		margin-top: 0;
+		margin-bottom: 15px;
+		color: #002C5A;
+		font-weight: 600;
+	}
+	
+	/* Tile details grid styling */
+	.tile-details-grid {
+		display: flex;
+		flex-wrap: wrap;
+		margin-bottom: 15px;
+	}
+	
+	.tile-details-grid .detail-item {
+		flex: 1 0 30%;
+		margin-bottom: 10px;
+	}
+	
+	.tile-details-grid .detail-label {
+		font-weight: 600;
+		margin-bottom: 3px;
+	}
+	
+	/* Availability badge styling */
+	.availability-badge {
+		display: inline-block;
+		padding: 3px 8px;
+		font-size: 16px; /* Increased to 16px */
+		font-weight: 600;
+	}
+	
+	.in-stock {
+		background-color: #BEF6D3;
+		color: #1F673B;
+	}
+	
+	.out-of-stock {
+		background-color: #e02b27;
+		color: white;
+	}
+	
+	/* Divider styling */
+	.tile-calculator-divider {
+		height: 1px;
+		background-color: #002C5A;
+		margin: 15px 0;
+	}
+	
 	/* Override default styles to force labels above inputs */
 	.tile-calculator-container .input-group {
 		display: block !important; /* Force block display */
@@ -99,13 +154,73 @@ if ($hasAllAttributes) {
 </style>
 
 <div class="tile-calculator-container" id="tile-calculator">
+	<!-- Header with title and availability -->
+	<div class="tile-header-container">
+		<h4><?= __('Your tile choice') ?></h4>
+		
+		<!-- Availability information -->
+		<div>
+			<?php if ($product->getIsSalable()): ?>
+				<span class="availability-badge in-stock"><?= __('In Stock') ?></span>
+			<?php else: ?>
+				<span class="availability-badge out-of-stock"><?= __('Out of Stock') ?></span>
+			<?php endif; ?>
+		</div>
+	</div>
+	
+	<!-- Tile details in one line -->
+	<div class="tile-details-grid">
+		<!-- Colour information -->
+		<div class="detail-item">
+			<span class="detail-label"><?= __('Colour:') ?></span>
+			<?php 
+			// Safely get color attribute - try getData as fallback
+			$colorValue = '';
+			try {
+				$colorValue = $product->getAttributeText('tile_colour_name');
+				if (empty($colorValue)) {
+					$colorValue = $product->getData('tile_colour_name');
+				}
+			} catch (\Exception $e) {
+				// If there's an error, try getData
+				$colorValue = $product->getData('tile_colour_name');
+			}
+			
+			echo $block->escapeHtml($colorValue ?: $product->getName());
+			?>
+		</div>
+		
+		<!-- Size information -->
+		<div class="detail-item">
+			<span class="detail-label"><?= __('Size:') ?></span>
+			<?php 
+			// Safely get size attribute - try getData as fallback
+			$sizeValue = '';
+			try {
+				$sizeValue = $product->getAttributeText('tile_size');
+				if (empty($sizeValue)) {
+					$sizeValue = $product->getData('tile_size');
+				}
+			} catch (\Exception $e) {
+				// If there's an error, try getData
+				$sizeValue = $product->getData('tile_size');
+			}
+			
+			echo $block->escapeHtml($sizeValue ?: __('Standard'));
+			?>
+		</div>
+	</div>
+	
+	<!-- Divider line -->
+	<div class="tile-calculator-divider"></div>
+	
 	<div class="calculator-inputs">
 		<div class="input-row" style="display: flex; justify-content: space-between; gap: 20px;">
 			<!-- SWAPPED: Area in m² (now left) -->
 			<div class="input-group" style="flex: 1;">
-				<!-- Updated label to include price per m² -->
+				<!-- New heading above the input -->
 				<label for="calculator-m2">
-					<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
+					<?= __('Order by m<sup>2</sup>') ?>
 				</label>
 				<div class="quantity-controls">
 					<button type="button" class="action minus" id="decrease-m2">
@@ -121,13 +236,17 @@ if ($hasAllAttributes) {
 						<span>+</span>
 					</button>
 				</div>
+				<!-- Pricing info below the input -->
+				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: normal;">
+					<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
+				</div>
 			</div>
 			
 			<!-- SWAPPED: Number of Boxes (now right) -->
 			<div class="input-group" style="flex: 1;">
-				<!-- Updated label to include price per box and tiles per box -->
+				<!-- New heading above the input -->
 				<label for="calculator-boxes">
-					<?= __('&pound;%1 per Box (%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+					<?= __('Order by box') ?>
 				</label>
 				<div class="quantity-controls">
 					<button type="button" class="action minus" id="decrease-boxes">
@@ -143,6 +262,10 @@ if ($hasAllAttributes) {
 						<span>+</span>
 					</button>
 				</div>
+				<!-- Pricing info below the input -->
+				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: normal;">
+					<?= __('&pound;%1 per box (%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -152,6 +275,8 @@ if ($hasAllAttributes) {
 		<strong><span id="result-box-text">1 box</span></strong> 
 		will cover 
 		<strong><span id="area-covered">1.1</span> m<sup>2</sup></strong>
+		<br>
+		<strong><span id="total-tiles">10</span> tiles</strong> in your order
 	</p>
 	
 	<div class="actions">
@@ -180,6 +305,7 @@ require(['jquery'], function($) {
 		var $m2Input = $('#calculator-m2');
 		var $boxesInput = $('#calculator-boxes');
 		var $areaCovered = $('#area-covered');
+		var $totalTiles = $('#total-tiles');
 		var $updateQuantityText = $('#update-quantity-text');
 		var $addToCartButton = $('#calculator-add-to-cart');
 		
@@ -262,9 +388,13 @@ require(['jquery'], function($) {
 			// Calculate the exact area covered by the boxes
 			var exactAreaCovered = calculateM2FromBoxes(boxes);
 			
+			// Calculate total tiles
+			var totalTiles = boxes * boxQuantity;
+			
 			// Update the result text
 			$('#result-box-text').text((boxes === 1) ? '1 box' : boxes + ' boxes');
 			$areaCovered.text(exactAreaCovered.toFixed(1));
+			$totalTiles.text(totalTiles);
 			
 			// Update button text
 			var totalPrice = boxes * pricePerBox;
@@ -363,9 +493,13 @@ require(['jquery'], function($) {
 			// Calculate area covered by 1 box
 			var exactAreaCovered = calculateM2FromBoxes(1);
 			
+			// Calculate initial total tiles (1 box)
+			var initialTotalTiles = 1 * boxQuantity;
+			
 			// Update result text
 			$('#result-box-text').text('1 box');
 			$areaCovered.text(exactAreaCovered.toFixed(1));
+			$totalTiles.text(initialTotalTiles);
 			
 			// Update button text
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
