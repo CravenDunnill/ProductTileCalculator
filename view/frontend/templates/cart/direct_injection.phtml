@@ -1,0 +1,279 @@
+<?php
+/**
+ * CravenDunnill ProductTileCalculator Extension - Direct cart injection
+ *
+ * @var $block \Magento\Framework\View\Element\Template
+ */
+
+// Load the calculator helper
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$calculatorHelper = $objectManager->get(\CravenDunnill\ProductTileCalculator\Helper\Calculator::class);
+$cartItems = [];
+
+// Get cart items data
+$checkoutSession = $objectManager->get(\Magento\Checkout\Model\Session::class);
+if ($checkoutSession) {
+	$quote = $checkoutSession->getQuote();
+	if ($quote) {
+		foreach ($quote->getAllVisibleItems() as $item) {
+			$product = $item->getProduct();
+			if ($product && $calculatorHelper->canUseCalculator($product)) {
+				$productId = $product->getId();
+				$boxQuantity = $calculatorHelper->getBoxQuantity($product);
+				$tilePerM2 = $calculatorHelper->getTilePerM2($product);
+				
+				$cartItems[$productId] = [
+					'boxQuantity' => $boxQuantity,
+					'tilePerM2' => $tilePerM2
+				];
+			}
+		}
+	}
+}
+?>
+
+<script>
+// Product data from Magento
+var tileProductData = <?= json_encode($cartItems) ?>;
+
+require(['jquery', 'domReady!'], function($) {
+	'use strict';
+	
+	// Function to calculate m² from boxes
+	function calculateM2FromBoxes(boxes, tilesPerBox, tilesPerM2) {
+		const tilesInBoxes = boxes * tilesPerBox;
+		return tilesInBoxes / tilesPerM2;
+	}
+	
+	// Function to create or update tile details
+	function updateTileDetails($cartItem, forceCreate) {
+		const $productDetails = $cartItem.find('.product-item-details');
+		const $productName = $productDetails.find('.product-item-name');
+		const $qtyInput = $cartItem.find('input[data-role="cart-item-qty"], input.qty');
+		
+		// Skip if no product details found
+		if ($productDetails.length === 0 || $qtyInput.length === 0) {
+			return;
+		}
+		
+		const itemId = $qtyInput.attr('id')?.replace('cart-', '').replace('-qty', '') || '';
+		const tilesQty = parseInt($qtyInput.val()) || 1;
+		
+		// Try to get product data from tileProductData
+		// If not found, use defaults
+		let boxQty = 10;
+		let tilesPerM2 = 8;
+		
+		// Find the product ID from data attributes
+		const productId = $qtyInput.data('product-id') || itemId;
+		
+		// Look for matching data in our PHP-generated object
+		if (tileProductData[productId]) {
+			boxQty = tileProductData[productId].boxQuantity;
+			tilesPerM2 = tileProductData[productId].tilePerM2;
+		}
+		
+		// Calculate boxes - properly rounded to whole boxes
+		const boxes = Math.floor(tilesQty / boxQty) || 1;
+		const boxText = boxes === 1 ? 'box' : 'boxes';
+		
+		// Calculate area coverage based on boxes and tiles per m²
+		const areaCoverage = calculateM2FromBoxes(boxes, boxQty, tilesPerM2);
+		
+		// Get product info from product name
+		const productName = $productName.text().trim();
+		const colourMatch = productName.match(/^([^-]+)/);
+		const colour = colourMatch ? colourMatch[1].trim() : 'n/a';
+		const sizeMatch = productName.match(/- ([^-]+)$/);
+		const size = sizeMatch ? sizeMatch[1].trim() : 'n/a';
+		
+		// Create or update the details
+		let $tileDetails = $productDetails.find('.tile-details-cart');
+		
+		if ($tileDetails.length === 0 || forceCreate) {
+			// Create new details element
+			if ($tileDetails.length > 0) {
+				$tileDetails.remove(); // Remove existing one if we're forcing recreation
+			}
+			
+			const detailsHtml = `
+				<div class="tile-details-cart" id="tile-details-${itemId}">
+					<div class="tile-details-item">
+						<span class="tile-details-label">Colour:</span>
+						<span class="tile-details-value">${colour}</span>
+					</div>
+					<div class="tile-details-item">
+						<span class="tile-details-label">Size:</span>
+						<span class="tile-details-value">${size}</span>
+					</div>
+					<div class="tile-details-item">
+						<span class="tile-details-label">Total Tiles:</span>
+						<span class="tile-details-value tile-total-qty">${tilesQty}</span>
+					</div>
+					<div class="tile-details-item">
+						<span class="tile-details-label">Coverage:</span>
+						<span class="tile-details-value tile-area-coverage">${areaCoverage.toFixed(2)} m<sup>2</sup></span>
+					</div>
+				</div>
+			`;
+			
+			// Insert right after the product name
+			$productName.after(detailsHtml);
+			
+			console.log(`Created tile details for product ID: ${itemId}`);
+			
+			// Replace native quantity field with box-based controls
+			addBoxControls($cartItem, boxQty, tilesQty);
+		} else {
+			// Update existing values
+			$tileDetails.find('.tile-total-qty').text(tilesQty);
+			$tileDetails.find('.tile-area-coverage').text(`${areaCoverage.toFixed(2)} m²`);
+			
+			console.log(`Updated tile details for product ID: ${itemId}`);
+		}
+	}
+	
+	// Function to add box-based controls instead of individual tile quantities
+	function addBoxControls($cartItem, boxQty, currentTilesQty) {
+		const $qtyField = $cartItem.find('.field.qty');
+		const $qtyInput = $qtyField.find('input.qty');
+		
+		if ($qtyField.length === 0 || $qtyInput.length === 0 || $qtyField.hasClass('box-controls-added')) {
+			return; // Already processed or not found
+		}
+		
+		// Mark as processed
+		$qtyField.addClass('box-controls-added');
+		
+		// Get current values
+		const itemId = $qtyInput.attr('id');
+		const currentBoxes = Math.max(1, Math.floor(currentTilesQty / boxQty));
+		
+		// Store original inputs for form submission
+		const $originalControls = $qtyField.find('.control.qty').addClass('original-controls').hide();
+		
+		// Create box quantity controls
+		const boxControlsHtml = `
+			<div class="control qty box-qty-controls">
+				<div class="box-qty-wrapper">
+					<button type="button" class="action minus box-qty-btn" id="${itemId}-decrease">
+						<span>-</span>
+					</button>
+					<input type="text" 
+						id="${itemId}-boxes" 
+						class="input-text box-qty" 
+						value="${currentBoxes}" 
+						min="1" 
+						data-box-qty="${boxQty}"
+						readonly>
+					<button type="button" class="action plus box-qty-btn" id="${itemId}-increase">
+						<span>+</span>
+					</button>
+				</div>
+				<div class="box-qty-info">
+					<span>Each box contains ${boxQty} tiles</span>
+				</div>
+			</div>
+		`;
+		
+		// Add box controls to the field
+		$qtyField.prepend(boxControlsHtml);
+		
+		// Add event handlers for box controls
+		$qtyField.find('#' + itemId + '-increase').on('click', function() {
+			const $boxInput = $qtyField.find('.box-qty');
+			const currentBoxes = parseInt($boxInput.val()) || 1;
+			const newBoxes = currentBoxes + 1;
+			
+			// Update box input
+			$boxInput.val(newBoxes);
+			
+			// Update hidden tile quantity input (boxQty × newBoxes)
+			const newTilesQty = newBoxes * boxQty;
+			$qtyInput.val(newTilesQty).trigger('change');
+			
+			// Update display values
+			updateTileDetails($cartItem, false);
+		});
+		
+		$qtyField.find('#' + itemId + '-decrease').on('click', function() {
+			const $boxInput = $qtyField.find('.box-qty');
+			const currentBoxes = parseInt($boxInput.val()) || 2;
+			if (currentBoxes > 1) {
+				const newBoxes = currentBoxes - 1;
+				
+				// Update box input
+				$boxInput.val(newBoxes);
+				
+				// Update hidden tile quantity input (boxQty × newBoxes)
+				const newTilesQty = newBoxes * boxQty;
+				$qtyInput.val(newTilesQty).trigger('change');
+				
+				// Update display values
+				updateTileDetails($cartItem, false);
+			}
+		});
+	}
+	
+	// Function to inject tile details for all cart items
+	function injectTileDetails(forceCreate) {
+		console.log('Direct injection: Processing cart items');
+		
+		// Find all cart items
+		$('.cart.item').each(function() {
+			updateTileDetails($(this), forceCreate);
+		});
+	}
+	
+	// Execute on page load
+	$(document).ready(function() {
+		// Add styles for box controls
+		$('head').append(`
+			<style>
+				.box-qty-controls {}
+				.box-qty-wrapper {
+					display: flex;
+					align-items: center;
+				}
+				.box-qty-label {
+					margin-right: 10px;
+					font-weight: 600;
+					color: #002C5A;
+				}
+				.box-qty {
+					width: 50px;
+					text-align: center;
+					margin: 0 5px;
+					height: 34px;
+				}
+				.box-qty-btn {
+					width: 34px;
+					height: 34px;
+					background: #002C5A;
+					border: none;
+					color: white;
+					font-weight: bold;
+					cursor: pointer;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+				.box-qty-btn:hover {
+					background: #001c38;
+				}
+				.box-qty-info {
+					margin-top: 5px;
+					font-size: 12px;
+					color: #666;
+				}
+			</style>
+		`);
+		
+		// Initial injection
+		injectTileDetails(true);
+		
+		// Also run after a delay to ensure all elements are loaded
+		setTimeout(function() { injectTileDetails(true); }, 1000);
+	});
+});
+</script>

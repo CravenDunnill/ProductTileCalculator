@@ -1,0 +1,84 @@
+<?php
+/**
+ * CravenDunnill ProductTileCalculator Extension - Product details template for cart items
+ *
+ * @var $block \Magento\Framework\View\Element\Template
+ * @var $viewModel \CravenDunnill\ProductTileCalculator\ViewModel\TileDetails
+ */
+
+$viewModel = $block->getData('view_model');
+$item = $viewModel->getQuoteItem();
+$product = $item->getProduct();
+$calculatorHelper = $viewModel->getCalculatorHelper();
+
+// Check if this product can use the calculator
+if (!$calculatorHelper->canUseCalculator($product)) {
+	return;
+}
+
+// Get colour information
+$colorValue = '';
+try {
+	$colorValue = $product->getAttributeText('tile_colour_name');
+	if (empty($colorValue)) {
+		$colorValue = $product->getData('tile_colour_name');
+	}
+} catch (\Exception $e) {
+	$colorValue = $product->getData('tile_colour_name');
+}
+
+// Get size information
+$sizeValue = '';
+try {
+	$sizeValue = $product->getAttributeText('tile_size');
+	if (empty($sizeValue)) {
+		$sizeValue = $product->getData('tile_size');
+	}
+} catch (\Exception $e) {
+	$sizeValue = $product->getData('tile_size');
+}
+
+// Get box quantity
+$tilesPerBox = $calculatorHelper->getBoxQuantity($product);
+
+// Get total quantity
+$totalTiles = $item->getQty();
+
+// Calculate boxes
+$boxes = $calculatorHelper->calculateBoxesFromTiles($totalTiles, $product);
+
+// Calculate m²
+$m2 = $calculatorHelper->calculateM2FromBoxes($boxes, $product);
+?>
+
+<div class="tile-details-cart">
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Colour:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml($colorValue ?: __('n/a')) ?></span>
+	</div>
+	
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Size:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml($sizeValue ?: __('n/a')) ?></span>
+	</div>
+	
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Tiles per Box:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml($tilesPerBox) ?></span>
+	</div>
+	
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Total Qty of Tiles:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml($totalTiles) ?></span>
+	</div>
+	
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Box Quantity:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml($calculatorHelper->formatBoxQuantity($boxes)) ?></span>
+	</div>
+	
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Area Coverage:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml(number_format($m2, 2) . ' m²') ?></span>
+	</div>
+</div>

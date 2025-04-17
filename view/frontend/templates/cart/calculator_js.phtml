@@ -1,0 +1,69 @@
+<?php
+/**
+ * CravenDunnill ProductTileCalculator Extension - Cart JavaScript initialization
+ */
+?>
+<script type="text/x-magento-init">
+{
+	"*": {
+		"CravenDunnill_ProductTileCalculator/js/cart-calculator": {}
+	}
+}
+</script>
+
+<script>
+	require(['jquery', 'domReady!'], function($) {
+		'use strict';
+		
+		// Log to console for debugging
+		console.log('CravenDunnill Tile Calculator cart module initialized');
+		
+		// Wait for DOM to be fully loaded
+		$(document).ready(function() {
+			// Inject product details directly as a fallback method
+			function injectTileDetails() {
+				console.log('Attempting to inject tile details...');
+				
+				$('.product-item-details').each(function() {
+					var $item = $(this);
+					var $product = $item.closest('tr.item-info');
+					
+					// Check if this is a tile calculator product (look for our data attribute)
+					if ($product.find('[data-role="tile-calculator-qty"]').length > 0) {
+						var boxQty = $product.find('[data-role="tile-calculator-qty"]').data('box-qty') || 10;
+						var tilesQty = $product.find('[data-role="tile-calculator-qty"]').val() || 1;
+						var boxes = Math.floor(tilesQty / boxQty);
+						
+						// Only add details if not already present
+						if ($item.find('.tile-details-cart').length === 0) {
+							console.log('Injecting tile details for product...');
+							
+							// Create simple details box
+							var detailsHtml = '<div class="tile-details-cart" style="display: block !important">';
+							detailsHtml += '<div class="tile-details-item"><span class="tile-details-label">Tiles per Box:</span>';
+							detailsHtml += '<span class="tile-details-value">' + boxQty + '</span></div>';
+							
+							detailsHtml += '<div class="tile-details-item"><span class="tile-details-label">Total Qty of Tiles:</span>';
+							detailsHtml += '<span class="tile-details-value">' + tilesQty + '</span></div>';
+							
+							detailsHtml += '<div class="tile-details-item"><span class="tile-details-label">Box Quantity:</span>';
+							detailsHtml += '<span class="tile-details-value">' + boxes + ' ' + (boxes === 1 ? 'box' : 'boxes') + '</span></div>';
+							
+							detailsHtml += '</div>';
+							
+							// Append to the product details
+							$item.append(detailsHtml);
+							
+							console.log('Tile details injected');
+						}
+					}
+				});
+			}
+			
+			// Try several times to ensure content is loaded
+			setTimeout(injectTileDetails, 500);
+			setTimeout(injectTileDetails, 1500);
+			setTimeout(injectTileDetails, 3000);
+		});
+	});
+</script>

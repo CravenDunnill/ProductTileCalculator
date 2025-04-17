@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+	<head>
+		<css src="CravenDunnill_ProductTileCalculator::css/cart_calculator.css"/>
+	</head>
+	<body>
+		<!-- Direct CSS injection to ensure styles are applied -->
+		<referenceContainer name="before.body.end">
+			<block class="Magento\Framework\View\Element\Template" 
+				   name="cart.direct.css" 
+				   template="CravenDunnill_ProductTileCalculator::cart/direct_css.phtml" />
+		</referenceContainer>
+		
+		<!-- Direct injection script to add tile details -->
+		<referenceContainer name="content">
+			<block class="Magento\Framework\View\Element\Template" 
+				   name="cart.direct.injection.script" 
+				   template="CravenDunnill_ProductTileCalculator::cart/direct_injection.phtml"
+				   after="-" />
+				   
+			<block class="Magento\Framework\View\Element\Template" 
+				   name="cart.calculator.js" 
+				   template="CravenDunnill_ProductTileCalculator::cart/calculator_js.phtml" 
+				   after="-" />
+		</referenceContainer>
+	</body>
+</page>

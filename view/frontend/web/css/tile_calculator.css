@@ -3,16 +3,7 @@
  */
 
 .tile-calculator-container {
-	margin-bottom: 20px;
-	padding: 15px;
-	border: 1px solid #e8e8e8;
-	background: #f8f8f8;
-	border-radius: 3px;
-}
-
-.tile-calculator-container h3 {
-	margin-top: 0;
-	margin-bottom: 15px;
+	margin-top: 10px;
 }
 
 .calculator-info {

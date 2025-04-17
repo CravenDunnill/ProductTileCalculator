@@ -34,51 +34,29 @@ if ($hasAllAttributes) {
 		display: none !important;
 	}
 	
-	/* Remove all rounded corners */
-	.tile-calculator-container,
-	.tile-calculator-container .quantity-controls input,
-	.tile-calculator-container .quantity-controls button,
-	.tile-calculator-container .actions a,
-	.tile-calculator-container .message {
-		border-radius: 0 !important;
-	}
-	
-	/* Change border color to dark blue */
-	.tile-calculator-container {
-		border: 1px solid #002C5A !important;
-	}
-	
-	/* Tile choices heading styling */
-	.tile-calculator-container h4 {
-		margin-top: 0;
-		margin-bottom: 15px;
-		color: #002C5A;
-		font-weight: 600;
-	}
-	
 	/* Tile details grid styling */
 	.tile-details-grid {
 		display: flex;
 		flex-wrap: wrap;
 		margin-bottom: 15px;
+		font-size: 16px;
+		font-weight: 200;
 	}
 	
 	.tile-details-grid .detail-item {
 		flex: 1 0 30%;
-		margin-bottom: 10px;
 	}
 	
 	.tile-details-grid .detail-label {
 		font-weight: 600;
-		margin-bottom: 3px;
 	}
 	
 	/* Availability badge styling */
 	.availability-badge {
 		display: inline-block;
 		padding: 3px 8px;
-		font-size: 16px; /* Increased to 16px */
-		font-weight: 600;
+		font-size: 16px;
+		font-weight: 200;
 	}
 	
 	.in-stock {
@@ -95,7 +73,7 @@ if ($hasAllAttributes) {
 	.tile-calculator-divider {
 		height: 1px;
 		background-color: #002C5A;
-		margin: 15px 0;
+		margin: 15px -15px;
 	}
 	
 	/* Override default styles to force labels above inputs */
@@ -118,6 +96,19 @@ if ($hasAllAttributes) {
 		width: 100%;
 	}
 	
+	.tile-calculator-container .quantity-controls button {
+		background-color: #002C5A !important;
+		color: white !important;
+		border: 2px solid #002C5A !important;
+		border-radius: 6px !important;
+		width: 38px;
+		height: 38px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+	
 	/* Make input fields flexible and equal width */
 	.tile-calculator-container .quantity-controls input {
 		flex: 1; /* Flexible width */
@@ -125,6 +116,10 @@ if ($hasAllAttributes) {
 		text-align: center;
 		margin: 0 5px;
 		min-width: 0; /* Allow flex shrinking */
+		border: 2px solid #002C5A !important;
+		border-radius: 6px !important;
+		background-color: #F4F9FF !important;
+		color: #002C5A !important;
 	}
 	
 	/* Results text styling */
@@ -148,25 +143,44 @@ if ($hasAllAttributes) {
 		display: block !important;
 		width: 100% !important;
 		text-align: center;
-		padding: 12px 0;
+		padding: 20px 10px;
 		font-size: 16px;
+		background-color: #002C5A !important;
+		border-color: #002C5A !important;
+		border-radius: 6px !important;
+		position: relative;
+		overflow: hidden;
+		z-index: 1;
+		transition: border-color 0.3s ease;
+	}
+	
+	.tile-calculator-container .actions a::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 0%;
+		height: 100%;
+		background-color: #26B057;
+		transition: width 0.3s ease;
+		z-index: -1;
+	}
+	
+	.tile-calculator-container .actions a:hover {
+		border-color: #26B057 !important;
+	}
+	
+	.tile-calculator-container .actions a:hover::before {
+		width: 100%;
+	}
+	
+	.tile-calculator-container .actions a span {
+		position: relative;
+		z-index: 2;
 	}
 </style>
 
 <div class="tile-calculator-container" id="tile-calculator">
-	<!-- Header with title and availability -->
-	<div class="tile-header-container">
-		<h4><?= __('Your tile choice') ?></h4>
-		
-		<!-- Availability information -->
-		<div>
-			<?php if ($product->getIsSalable()): ?>
-				<span class="availability-badge in-stock"><?= __('In Stock') ?></span>
-			<?php else: ?>
-				<span class="availability-badge out-of-stock"><?= __('Out of Stock') ?></span>
-			<?php endif; ?>
-		</div>
-	</div>
 	
 	<!-- Tile details in one line -->
 	<div class="tile-details-grid">
@@ -209,6 +223,15 @@ if ($hasAllAttributes) {
 			echo $block->escapeHtml($sizeValue ?: __('Standard'));
 			?>
 		</div>
+	</div>
+	
+	<!-- Availability information -->
+	<div>
+		<?php if ($product->getIsSalable()): ?>
+			<span class="availability-badge in-stock"><?= __('In Stock') ?></span>
+		<?php else: ?>
+			<span class="availability-badge out-of-stock"><?= __('Out of Stock') ?></span>
+		<?php endif; ?>
 	</div>
 	
 	<!-- Divider line -->
@@ -286,6 +309,12 @@ if ($hasAllAttributes) {
 		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
 			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($pricePerBox, 2)) ?></span>
 		</a>
+	</div>
+	
+	<!-- Delivery information -->
+	<div class="delivery-info" style="margin-top: 15px; text-align: center;">
+		<p style="margin-bottom: 5px;"><?= __('Available for delivery in 1-2 working days') ?></p>
+		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery date and costs confirmed at checkout') ?></p>
 	</div>
 </div>
 

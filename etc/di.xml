@@ -1,4 +1,27 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<!-- Original module preference -->
 	<preference for="CravenDunnill\ProductTileCalculator\Block\TileCalculatorInterface" type="CravenDunnill\ProductTileCalculator\Block\TileCalculator" />
+	
+	<!-- Plugin to add box info to cart item -->
+	<type name="Magento\Checkout\Model\Cart\ItemOptionsProcessor">
+		<plugin name="add_box_info_to_cart_item" type="CravenDunnill\ProductTileCalculator\Plugin\AddBoxInfoToCartItem" sortOrder="10" />
+	</type>
+	
+	<!-- Plugin to add box quantity info to checkout item display -->
+	<type name="Magento\Checkout\CustomerData\AbstractItem">
+		<plugin name="add_box_info_to_checkout_item" type="CravenDunnill\ProductTileCalculator\Plugin\Checkout\ItemDetailsPlugin" sortOrder="10" />
+	</type>
+	
+	<!-- Plugin to add product details directly to cart item HTML -->
+	<type name="Magento\Checkout\Block\Cart\Item\Renderer">
+		<plugin name="add_tile_details_to_cart_item" type="CravenDunnill\ProductTileCalculator\Plugin\Cart\ItemHtmlPlugin" sortOrder="20" />
+	</type>
+	
+	<!-- Virtual Type for mini cart items -->
+	<virtualType name="Magento\Checkout\Block\Cart\Item\Renderer">
+		<arguments>
+			<argument name="calculator_helper" xsi:type="object">CravenDunnill\ProductTileCalculator\Helper\Calculator</argument>
+		</arguments>
+	</virtualType>
 </config>

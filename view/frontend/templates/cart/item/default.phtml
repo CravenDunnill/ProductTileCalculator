@@ -1,0 +1,76 @@
+<?php
+/**
+ * @var $block \CravenDunnill\ProductTileCalculator\Block\Cart\Item\Renderer
+ */
+?>
+<tbody class="cart item">
+	<tr class="item-info">
+		<td data-th="<?= $block->escapeHtml(__('Item')) ?>" class="col item">
+			<?= $block->getItemHtml($block->getItem()) ?>
+			
+			<?php 
+			// Using our standalone template for product details
+			$viewModel = $block->getData('tile_details_view_model');
+			if ($viewModel) {
+				$viewModel->setQuoteItem($block->getItem());
+				echo $block->getChildHtml('tile_product_details');
+			}
+			?>
+		</td>
+		<td data-th="<?= $block->escapeHtml(__('Price')) ?>" class="col price">
+			<?= $block->getUnitPriceHtml($block->getItem()) ?>
+		</td>
+		<td data-th="<?= $block->escapeHtml(__('Qty')) ?>" class="col qty">
+			<?php if ($block->canUseCalculator()): ?>
+				<div class="field qty tile-calculator-cart-qty">
+					<div class="control qty">
+						<input id="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty"
+							   name="cart[<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>][qty]"
+							   data-cart-item-id="<?= $block->escapeHtmlAttr($block->getItem()->getSku()) ?>"
+							   value="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
+							   type="number"
+							   min="0"
+							   data-item-qty="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
+							   data-cart-item="<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>"
+							   data-role="cart-item-qty"
+							   class="input-text qty"
+							   data-validate="{required:true,'validate-greater-than-zero':true}"
+							   data-box-qty="<?= $block->escapeHtmlAttr($block->getTilesPerBox()) ?>"
+							   data-role="tile-calculator-qty"/>
+					</div>
+					<div class="box-info">
+						<span class="box-qty-display"><?= $block->escapeHtml($block->getFormattedBoxQuantity()) ?></span>
+						<span class="area-display">(<?= $block->escapeHtml($block->getFormattedAreaCovered()) ?>)</span>
+					</div>
+				</div>
+			<?php else: ?>
+				<div class="field qty">
+					<div class="control qty">
+						<label for="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty">
+							<span class="label"><?= $block->escapeHtml(__('Qty')) ?></span>
+							<input id="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty"
+								   name="cart[<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>][qty]"
+								   data-cart-item-id="<?= $block->escapeHtmlAttr($block->getItem()->getSku()) ?>"
+								   value="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
+								   type="number"
+								   min="0"
+								   data-item-qty="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
+								   title="<?= $block->escapeHtmlAttr(__('Qty')) ?>"
+								   class="input-text qty"
+								   data-validate="{required:true,'validate-greater-than-zero':true}"
+								   data-role="cart-item-qty"/>
+						</label>
+					</div>
+				</div>
+			<?php endif; ?>
+		</td>
+		<td data-th="<?= $block->escapeHtml(__('Subtotal')) ?>" class="col subtotal">
+			<?= $block->getRowTotalHtml($block->getItem()) ?>
+		</td>
+		<td class="col actions" data-th="<?= $block->escapeHtml(__('Actions')) ?>">
+			<div class="actions-toolbar">
+				<?= $block->getActions($block->getItem()) ?>
+			</div>
+		</td>
+	</tr>
+</tbody>
