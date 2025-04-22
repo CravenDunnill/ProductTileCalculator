@@ -1,0 +1,76 @@
+<?php
+/**
+ * CravenDunnill ProductTileCalculator Extension - Box Price JavaScript
+ *
+ * @var $block \Magento\Framework\View\Element\Template
+ */
+?>
+<script type="text/x-magento-init">
+{
+	"*": {
+		"CravenDunnill_ProductTileCalculator/js/box-price-update": {}
+	}
+}
+</script>
+
+<script>
+require(['jquery'], function($) {
+	'use strict';
+	
+	$(document).ready(function() {
+		console.log('Box Price Update Direct Script loaded');
+		
+		// Function to format price
+		function formatPrice(price) {
+			return '£' + parseFloat(price).toFixed(2);
+		}
+		
+		// Function to update box price display
+		function updateBoxPrice() {
+			$('.item-info').each(function() {
+				var $cartItem = $(this);
+				var $boxPriceValue = $cartItem.find('.box-price-value');
+				var $qtyInput = $cartItem.find('[data-role="cart-item-qty"]');
+				
+				// Only proceed if this is a tile calculator product with box price
+				if ($boxPriceValue.length === 0 || $qtyInput.length === 0) {
+					return;
+				}
+				
+				// Get base price data
+				var basePricePerBox = parseFloat($boxPriceValue.data('box-price'));
+				var tilesPerBox = parseInt($boxPriceValue.data('tiles-per-box'));
+				
+				if (isNaN(basePricePerBox) || isNaN(tilesPerBox) || tilesPerBox <= 0) {
+					return;
+				}
+				
+				// Get current quantity
+				var currentQty = parseInt($qtyInput.val()) || 1;
+				
+				// Calculate number of boxes (for display purposes)
+				var boxes = Math.floor(currentQty / tilesPerBox);
+				if (boxes < 1) boxes = 1;
+				
+				// The price per box doesn't change, we're just updating for clarity
+				
+				console.log('Box price info: ', basePricePerBox, ' per box, ', boxes, ' boxes');
+			});
+		}
+		
+		// On quantity change
+		$(document).on('change', '[data-role="cart-item-qty"]', function() {
+			// Use setTimeout to ensure that we update after any Magento event processing
+			setTimeout(updateBoxPrice, 500);
+		});
+		
+		// Initial update
+		setTimeout(updateBoxPrice, 1000);
+		
+		// Handle cart update events
+		$(document).on('ajax:updateCartItemQty', function() {
+			setTimeout(updateBoxPrice, 1000);
+		});
+	});
+});
+</script>

@@ -22,6 +22,12 @@
 				   name="cart.calculator.js" 
 				   template="CravenDunnill_ProductTileCalculator::cart/calculator_js.phtml" 
 				   after="-" />
+				   
+			<!-- New: Add box price update script -->
+			<block class="Magento\Framework\View\Element\Template" 
+				   name="cart.box.price.js" 
+				   template="CravenDunnill_ProductTileCalculator::cart/box_price_js.phtml" 
+				   after="-" />
 		</referenceContainer>
 	</body>
 </page>

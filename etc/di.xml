@@ -16,6 +16,8 @@
 	<!-- Plugin to add product details directly to cart item HTML -->
 	<type name="Magento\Checkout\Block\Cart\Item\Renderer">
 		<plugin name="add_tile_details_to_cart_item" type="CravenDunnill\ProductTileCalculator\Plugin\Cart\ItemHtmlPlugin" sortOrder="20" />
+		<!-- NEW: Plugin to add box price to cart item -->
+		<plugin name="add_box_price_to_cart_item" type="CravenDunnill\ProductTileCalculator\Plugin\Cart\ItemPricePlugin" sortOrder="30" />
 	</type>
 	
 	<!-- Virtual Type for mini cart items -->
