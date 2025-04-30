@@ -123,7 +123,7 @@ require(['jquery', 'domReady!'], function($) {
 			console.log(`Created tile details for product ID: ${itemId}`);
 			
 			// Replace native quantity field with box-based controls
-			addBoxControls($cartItem, boxQty, tilesQty);
+			//addBoxControls($cartItem, boxQty, tilesQty);
 		} else {
 			// Update existing values
 			$tileDetails.find('.tile-total-qty').text(tilesQty);
@@ -131,88 +131,13 @@ require(['jquery', 'domReady!'], function($) {
 			
 			console.log(`Updated tile details for product ID: ${itemId}`);
 		}
-	}
-	
-	// Function to add box-based controls instead of individual tile quantities
-	function addBoxControls($cartItem, boxQty, currentTilesQty) {
-		const $qtyField = $cartItem.find('.field.qty');
-		const $qtyInput = $qtyField.find('input.qty');
 		
-		if ($qtyField.length === 0 || $qtyInput.length === 0 || $qtyField.hasClass('box-controls-added')) {
-			return; // Already processed or not found
+		// Update box info display if it exists
+		const $boxInfo = $cartItem.find('.box-info');
+		if ($boxInfo.length > 0) {
+			$boxInfo.find('.box-qty-display').text(`${boxes} ${boxText}`);
+			$boxInfo.find('.area-display').text(`(${areaCoverage.toFixed(2)} m²)`);
 		}
-		
-		// Mark as processed
-		$qtyField.addClass('box-controls-added');
-		
-		// Get current values
-		const itemId = $qtyInput.attr('id');
-		const currentBoxes = Math.max(1, Math.floor(currentTilesQty / boxQty));
-		
-		// Store original inputs for form submission
-		const $originalControls = $qtyField.find('.control.qty').addClass('original-controls').hide();
-		
-		// Create box quantity controls
-		const boxControlsHtml = `
-			<div class="control qty box-qty-controls">
-				<div class="box-qty-wrapper">
-					<button type="button" class="action minus box-qty-btn" id="${itemId}-decrease">
-						<span>-</span>
-					</button>
-					<input type="text" 
-						id="${itemId}-boxes" 
-						class="input-text box-qty" 
-						value="${currentBoxes}" 
-						min="1" 
-						data-box-qty="${boxQty}"
-						readonly>
-					<button type="button" class="action plus box-qty-btn" id="${itemId}-increase">
-						<span>+</span>
-					</button>
-				</div>
-				<div class="box-qty-info">
-					<span>Each box contains ${boxQty} tiles</span>
-				</div>
-			</div>
-		`;
-		
-		// Add box controls to the field
-		$qtyField.prepend(boxControlsHtml);
-		
-		// Add event handlers for box controls
-		$qtyField.find('#' + itemId + '-increase').on('click', function() {
-			const $boxInput = $qtyField.find('.box-qty');
-			const currentBoxes = parseInt($boxInput.val()) || 1;
-			const newBoxes = currentBoxes + 1;
-			
-			// Update box input
-			$boxInput.val(newBoxes);
-			
-			// Update hidden tile quantity input (boxQty × newBoxes)
-			const newTilesQty = newBoxes * boxQty;
-			$qtyInput.val(newTilesQty).trigger('change');
-			
-			// Update display values
-			updateTileDetails($cartItem, false);
-		});
-		
-		$qtyField.find('#' + itemId + '-decrease').on('click', function() {
-			const $boxInput = $qtyField.find('.box-qty');
-			const currentBoxes = parseInt($boxInput.val()) || 2;
-			if (currentBoxes > 1) {
-				const newBoxes = currentBoxes - 1;
-				
-				// Update box input
-				$boxInput.val(newBoxes);
-				
-				// Update hidden tile quantity input (boxQty × newBoxes)
-				const newTilesQty = newBoxes * boxQty;
-				$qtyInput.val(newTilesQty).trigger('change');
-				
-				// Update display values
-				updateTileDetails($cartItem, false);
-			}
-		});
 	}
 	
 	// Function to inject tile details for all cart items
@@ -227,44 +152,72 @@ require(['jquery', 'domReady!'], function($) {
 	
 	// Execute on page load
 	$(document).ready(function() {
-		// Add styles for box controls
+		// Add styles for compact controls
 		$('head').append(`
 			<style>
-				.box-qty-controls {}
-				.box-qty-wrapper {
-					display: flex;
-					align-items: center;
+				/* Compact quantity input styling */
+				.control.qty.compact-controls {
+					display: flex !important;
+					max-width: 80px !important;
+					position: relative !important;
 				}
-				.box-qty-label {
-					margin-right: 10px;
-					font-weight: 600;
-					color: #002C5A;
+
+				.compact-controls .input-text.qty {
+					width: 40px !important;
+					text-align: center !important;
+					border-radius: 4px !important;
+					height: 34px !important;
+					margin: 0 !important;
+					padding: 0 3px !important;
 				}
-				.box-qty {
-					width: 50px;
-					text-align: center;
-					margin: 0 5px;
-					height: 34px;
+
+				.compact-controls .qty-changer {
+					display: flex !important;
+					flex-direction: column !important;
+					height: 34px !important;
+					position: absolute !important;
+					right: 1px !important;
+					top: 0 !important;
 				}
-				.box-qty-btn {
-					width: 34px;
-					height: 34px;
-					background: #002C5A;
-					border: none;
-					color: white;
-					font-weight: bold;
-					cursor: pointer;
-					display: flex;
-					align-items: center;
-					justify-content: center;
+
+				.compact-controls .action.plus,
+				.compact-controls .action.minus {
+					width: 16px !important;
+					height: 17px !important;
+					background: #002C5A !important;
+					border: none !important;
+					color: white !important;
+					cursor: pointer !important;
+					padding: 0 !important;
+					margin: 0 !important;
+					display: flex !important;
+					align-items: center !important;
+					justify-content: center !important;
+					font-size: 8px !important;
+					border-radius: 0 !important;
 				}
-				.box-qty-btn:hover {
-					background: #001c38;
+
+				.compact-controls .action.plus {
+					border-radius: 0 4px 0 0 !important;
 				}
-				.box-qty-info {
-					margin-top: 5px;
-					font-size: 12px;
-					color: #666;
+
+				.compact-controls .action.minus {
+					border-radius: 0 0 4px 0 !important;
+				}
+
+				.compact-controls .action.plus:hover,
+				.compact-controls .action.minus:hover {
+					background: #001c38 !important;
+				}
+				
+				/* Hide number input spinners */
+				.compact-controls input[type=number]::-webkit-inner-spin-button, 
+				.compact-controls input[type=number]::-webkit-outer-spin-button { 
+					-webkit-appearance: none !important;
+					margin: 0 !important;
+				}
+				.compact-controls input[type=number] {
+					-moz-appearance: textfield !important;
 				}
 			</style>
 		`);

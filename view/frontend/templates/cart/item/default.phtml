@@ -23,7 +23,7 @@
 		<td data-th="<?= $block->escapeHtml(__('Qty')) ?>" class="col qty">
 			<?php if ($block->canUseCalculator()): ?>
 				<div class="field qty tile-calculator-cart-qty">
-					<div class="control qty">
+					<div class="control qty compact-controls">
 						<input id="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty"
 							   name="cart[<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>][qty]"
 							   data-cart-item-id="<?= $block->escapeHtmlAttr($block->getItem()->getSku()) ?>"
@@ -36,7 +36,16 @@
 							   class="input-text qty"
 							   data-validate="{required:true,'validate-greater-than-zero':true}"
 							   data-box-qty="<?= $block->escapeHtmlAttr($block->getTilesPerBox()) ?>"
-							   data-role="tile-calculator-qty"/>
+							   data-role="tile-calculator-qty"
+							   readonly/>
+						<div class="qty-changer">
+							<button type="button" class="action plus qty-up" data-cart-item="<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>">
+								<span>▲</span>
+							</button>
+							<button type="button" class="action minus qty-down" data-cart-item="<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>">
+								<span>▼</span>
+							</button>
+						</div>
 					</div>
 					<div class="box-info">
 						<span class="box-qty-display"><?= $block->escapeHtml($block->getFormattedBoxQuantity()) ?></span>
@@ -45,21 +54,27 @@
 				</div>
 			<?php else: ?>
 				<div class="field qty">
-					<div class="control qty">
-						<label for="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty">
-							<span class="label"><?= $block->escapeHtml(__('Qty')) ?></span>
-							<input id="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty"
-								   name="cart[<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>][qty]"
-								   data-cart-item-id="<?= $block->escapeHtmlAttr($block->getItem()->getSku()) ?>"
-								   value="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
-								   type="number"
-								   min="0"
-								   data-item-qty="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
-								   title="<?= $block->escapeHtmlAttr(__('Qty')) ?>"
-								   class="input-text qty"
-								   data-validate="{required:true,'validate-greater-than-zero':true}"
-								   data-role="cart-item-qty"/>
-						</label>
+					<div class="control qty compact-controls">
+						<input id="cart-<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>-qty"
+							   name="cart[<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>][qty]"
+							   data-cart-item-id="<?= $block->escapeHtmlAttr($block->getItem()->getSku()) ?>"
+							   value="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
+							   type="number"
+							   min="0"
+							   data-item-qty="<?= $block->escapeHtmlAttr($block->getQty()) ?>"
+							   title="<?= $block->escapeHtmlAttr(__('Qty')) ?>"
+							   class="input-text qty"
+							   data-validate="{required:true,'validate-greater-than-zero':true}"
+							   data-role="cart-item-qty"
+							   readonly/>
+						<div class="qty-changer">
+							<button type="button" class="action plus qty-up" data-cart-item="<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>">
+								<span>▲</span>
+							</button>
+							<button type="button" class="action minus qty-down" data-cart-item="<?= $block->escapeHtmlAttr($block->getItem()->getId()) ?>">
+								<span>▼</span>
+							</button>
+						</div>
 					</div>
 				</div>
 			<?php endif; ?>

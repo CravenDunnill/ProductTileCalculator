@@ -49,6 +49,51 @@ define([
 				}, 50);
 			});
 			
+			// Handlers for quantity up/down buttons
+			$(document).on('click', '.qty-up', function(e) {
+				e.preventDefault();
+				var $qtyInput = $(this).closest('.compact-controls').find('input.qty');
+				var currentQty = parseInt($qtyInput.val());
+				
+				if (!isNaN(currentQty)) {
+					$qtyInput.val(currentQty + 1).trigger('change');
+					
+					// For tile calculator products, update box display if applicable
+					if ($qtyInput.data('box-qty')) {
+						var boxQty = parseInt($qtyInput.data('box-qty'));
+						var newQty = currentQty + 1;
+						var boxes = calculateBoxesFromTiles(newQty, boxQty);
+						var $infoContainer = $qtyInput.closest('.tile-calculator-cart-qty').find('.box-info');
+						
+						if ($infoContainer.length > 0) {
+							$infoContainer.find('.box-qty-display').text(formatBoxQuantity(boxes));
+						}
+					}
+				}
+			});
+			
+			$(document).on('click', '.qty-down', function(e) {
+				e.preventDefault();
+				var $qtyInput = $(this).closest('.compact-controls').find('input.qty');
+				var currentQty = parseInt($qtyInput.val());
+				
+				if (!isNaN(currentQty) && currentQty > 1) {
+					$qtyInput.val(currentQty - 1).trigger('change');
+					
+					// For tile calculator products, update box display if applicable
+					if ($qtyInput.data('box-qty')) {
+						var boxQty = parseInt($qtyInput.data('box-qty'));
+						var newQty = currentQty - 1;
+						var boxes = calculateBoxesFromTiles(newQty, boxQty);
+						var $infoContainer = $qtyInput.closest('.tile-calculator-cart-qty').find('.box-info');
+						
+						if ($infoContainer.length > 0) {
+							$infoContainer.find('.box-qty-display').text(formatBoxQuantity(boxes));
+						}
+					}
+				}
+			});
+			
 			// Add box quantity controls to mini cart
 			function updateMiniCart() {
 				// Find tile calculator items in mini cart

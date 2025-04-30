@@ -53,6 +53,11 @@ define([
 				setTimeout(updateBoxPrice, 500);
 			});
 			
+			// Handle quantity up/down button clicks
+			$(document).on('click', '.qty-up, .qty-down', function() {
+				setTimeout(updateBoxPrice, 500);
+			});
+			
 			// Initial update
 			setTimeout(updateBoxPrice, 1000);
 			

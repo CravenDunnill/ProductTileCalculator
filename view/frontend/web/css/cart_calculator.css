@@ -108,28 +108,6 @@
 	border: 1px solid #ddd !important;
 }
 
-/* Adjust styles on mobile */
-@media (max-width: 767px) {
-	.tile-calculator-cart-qty {
-		flex-direction: column !important;
-	}
-	
-	.tile-calculator-cart-qty .box-info {
-		margin-top: 8px !important;
-	}
-	
-	.product-item-details .tile-details-label {
-		min-width: 110px !important;
-		flex: 0 0 110px !important;
-	}
-}
-
-/**
- * CravenDunnill ProductTileCalculator Extension - Cart styles
- */
-
-/* Existing styles here... */
-
 /* Box price styling in cart */
 .box-price-info {
 	margin-top: 10px !important;
@@ -155,10 +133,83 @@
 	color: #333333 !important;
 }
 
-/* Responsive adjustments */
-@media only screen and (max-width: 767px) {
-	.box-price-info {
-		font-size: 13px !important;
-		padding: 5px !important;
+/* Compact quantity input styling */
+.control.qty.compact-controls {
+	display: flex !important;
+	max-width: 80px !important;
+	position: relative !important;
+}
+
+.compact-controls .input-text.qty {
+	width: 40px !important;
+	text-align: center !important;
+	border-radius: 4px !important;
+	height: 34px !important;
+	margin: 0 !important;
+	padding: 0 3px !important;
+}
+
+.compact-controls .qty-changer {
+	display: flex !important;
+	flex-direction: column !important;
+	height: 34px !important;
+	position: absolute !important;
+	right: 1px !important;
+	top: 0 !important;
+}
+
+.compact-controls .action.plus,
+.compact-controls .action.minus {
+	width: 16px !important;
+	height: 17px !important;
+	background: #002C5A !important;
+	border: none !important;
+	color: white !important;
+	cursor: pointer !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	font-size: 8px !important;
+	border-radius: 0 !important;
+}
+
+.compact-controls .action.plus {
+	border-radius: 0 4px 0 0 !important;
+}
+
+.compact-controls .action.minus {
+	border-radius: 0 0 4px 0 !important;
+}
+
+.compact-controls .action.plus:hover,
+.compact-controls .action.minus:hover {
+	background: #001c38 !important;
+}
+
+/* Hide number input spinners */
+.compact-controls input[type=number]::-webkit-inner-spin-button, 
+.compact-controls input[type=number]::-webkit-outer-spin-button { 
+	-webkit-appearance: none !important;
+	margin: 0 !important;
+}
+.compact-controls input[type=number] {
+	-moz-appearance: textfield !important;
+}
+
+/* Adjust styles on mobile */
+@media (max-width: 767px) {
+	.tile-calculator-cart-qty {
+		flex-direction: column !important;
+	}
+	
+	.tile-calculator-cart-qty .box-info {
+		margin-top: 8px !important;
+	}
+	
+	.product-item-details .tile-details-label {
+		min-width: 110px !important;
+		flex: 0 0 110px !important;
 	}
 }
