@@ -62,7 +62,7 @@ $productId = $product->getId();
 			?>
 			<div class="tile-details-item">
 				<span class="tile-details-label"><?= $block->escapeHtml(__('Coverage:')) ?></span>
-				<span class="tile-details-value"><?= $block->escapeHtml(number_format($areaCoverage, 2) . ' m²') ?></span>
+				<span class="tile-details-value"><?= $block->escapeHtml(number_format($areaCoverage, 3) . ' m²') ?></span>
 			</div>
 			<?php endif; ?>
 		</div>

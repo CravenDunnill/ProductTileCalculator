@@ -228,7 +228,7 @@ if ($hasAllAttributes) {
 	</div>
 	
 	<!-- Availability information -->
-	<div>
+	<div style="display: none;">
 		<?php if ($product->getIsSalable()): ?>
 			<span class="availability-badge in-stock"><?= __('In Stock') ?></span>
 		<?php else: ?>
@@ -262,7 +262,7 @@ if ($hasAllAttributes) {
 					</button>
 				</div>
 				<!-- Pricing info below the input -->
-				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: normal;">
+				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: 200;">
 					<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
 				</div>
 			</div>
@@ -288,8 +288,8 @@ if ($hasAllAttributes) {
 					</button>
 				</div>
 				<!-- Pricing info below the input -->
-				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: normal;">
-					<?= __('&pound;%1 per box (%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: 200;">
+					<?= __('&pound;%1 per box<br>(%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
 				</div>
 			</div>
 		</div>
@@ -315,7 +315,7 @@ if ($hasAllAttributes) {
 	
 	<!-- Delivery information -->
 	<div class="delivery-info" style="margin-top: 15px; text-align: center;">
-		<p style="margin-bottom: 5px;"><?= __('Available for delivery in 1-2 working days') ?></p>
+		<p style="margin-bottom: 5px;"><?= __('Available for delivery in 2-3 working days') ?></p>
 		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery date and costs confirmed at checkout') ?></p>
 	</div>
 </div>
@@ -370,7 +370,7 @@ require(['jquery'], function($) {
 		// Update Functions
 		function updateM2Display(value) {
 			// ALWAYS set as numeric only - NO UNITS
-			$m2Input.val(parseFloat(value).toFixed(1));
+			$m2Input.val(parseFloat(value).toFixed(3));
 		}
 		
 		function updateBoxesDisplay(value) {
@@ -425,7 +425,7 @@ require(['jquery'], function($) {
 			
 			// Update the result text
 			$('#result-box-text').text((boxes === 1) ? '1 box' : boxes + ' boxes');
-			$areaCovered.text(exactAreaCovered.toFixed(1));
+			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(totalTiles);
 			
 			// Update button text
@@ -530,7 +530,7 @@ require(['jquery'], function($) {
 			
 			// Update result text
 			$('#result-box-text').text('1 box');
-			$areaCovered.text(exactAreaCovered.toFixed(1));
+			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(initialTotalTiles);
 			
 			// Update button text

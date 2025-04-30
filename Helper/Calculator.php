@@ -259,4 +259,15 @@ class Calculator extends AbstractHelper
 	{
 		return sprintf('%d %s', (int)$boxes, $this->getBoxText($boxes));
 	}
+	
+	/**
+	 * Format area covered with 3 decimal places
+	 *
+	 * @param float $area
+	 * @return string
+	 */
+	public function formatAreaCovered($area)
+	{
+		return number_format($area, 3) . ' m²';
+	}
 }

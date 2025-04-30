@@ -234,7 +234,7 @@ require(['jquery', 'domReady!'], function($) {
 		
 		if (tilesPerM2 && tilesPerM2 > 0) {
 			areaCoverage = totalTiles / tilesPerM2;
-			console.log("Calculated coverage: " + areaCoverage.toFixed(2) + " m²");
+			console.log("Calculated coverage: " + areaCoverage.toFixed(3) + " m²");
 		} else {
 			console.log("Cannot calculate coverage: tilesPerM2 = " + tilesPerM2);
 		}
@@ -277,7 +277,7 @@ require(['jquery', 'domReady!'], function($) {
 					${tilesPerM2 && tilesPerM2 > 0 ? `
 					<div class="tile-details-item">
 						<span class="tile-details-label">Coverage:</span>
-						<span class="tile-details-value tile-area-coverage">${areaCoverage.toFixed(2)} m<sup>2</sup></span>
+						<span class="tile-details-value tile-area-coverage">${areaCoverage.toFixed(3)} m<sup>2</sup></span>
 					</div>
 					` : ''}
 				</div>
@@ -296,7 +296,7 @@ require(['jquery', 'domReady!'], function($) {
 			
 			const $coverageElem = $tileDetails.find('.tile-area-coverage');
 			if ($coverageElem.length > 0 && tilesPerM2 > 0) {
-				$coverageElem.html(`${areaCoverage.toFixed(2)} m<sup>2</sup>`);
+				$coverageElem.html(`${areaCoverage.toFixed(3)} m<sup>2</sup>`);
 			}
 			
 			// Update attribute set name if element exists
@@ -316,7 +316,7 @@ require(['jquery', 'domReady!'], function($) {
 			$boxInfo.find('.box-qty-display').text(`${boxes} ${boxText}`);
 			
 			if (tilesPerM2 > 0) {
-				$boxInfo.find('.area-display').text(`(${areaCoverage.toFixed(2)} m²)`);
+				$boxInfo.find('.area-display').text(`(${areaCoverage.toFixed(3)} m²)`);
 			}
 		}
 	}

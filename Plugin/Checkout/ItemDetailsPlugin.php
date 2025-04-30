@@ -149,7 +149,7 @@ class ItemDetailsPlugin
 		
 		$result['options'][] = [
 			'label' => __('Area Covered'),
-			'value' => number_format($m2, 2) . ' m²'
+			'value' => number_format($m2, 3) . ' m²'
 		];
 		
 		return $result;

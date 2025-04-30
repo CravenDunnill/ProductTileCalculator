@@ -61,18 +61,15 @@ class ItemPricePlugin
 				return $result;
 			}
 			
-			// Get price per tile
-			$pricePerTile = $item->getPrice();
-			
-			// Calculate price per box
-			$pricePerBox = $pricePerTile * $tilesPerBox;
+			// Use calculator helper to get box price with VAT
+			$pricePerBox = $this->calculatorHelper->getPricePerBox($product);
 			
 			// Format the price
 			$formattedPrice = $this->priceCurrency->format($pricePerBox);
 			
 			// Create box price HTML
 			$boxPriceHtml = '<div class="box-price-info">' .
-				'<span class="box-price-label">' . __('Price per box:') . '</span> ' .
+				'<span class="box-price-label">' . __('Price per box (inc. VAT):') . '</span> ' .
 				'<span class="box-price-value" data-box-price="' . $pricePerBox . '" data-tiles-per-box="' . $tilesPerBox . '">' . 
 				$formattedPrice . 
 				'</span>' .

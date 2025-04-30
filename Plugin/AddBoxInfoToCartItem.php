@@ -117,7 +117,7 @@ class AddBoxInfoToCartItem
 		
 		$additionalOptions[] = [
 			'label' => __('Area Covered'),
-			'value' => number_format($m2, 2) . ' m²'
+			'value' => number_format($m2, 3) . ' m²'
 		];
 		
 		// Get existing options

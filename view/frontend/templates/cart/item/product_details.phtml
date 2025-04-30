@@ -99,6 +99,6 @@ $m2 = $calculatorHelper->calculateM2FromBoxes($boxes, $product);
 	
 	<div class="tile-details-item">
 		<span class="tile-details-label"><?= $block->escapeHtml(__('Area Coverage:')) ?></span>
-		<span class="tile-details-value"><?= $block->escapeHtml(number_format($m2, 2) . ' m²') ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml(number_format($m2, 3) . ' m²') ?></span>
 	</div>
 </div>

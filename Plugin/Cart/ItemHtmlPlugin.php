@@ -135,7 +135,7 @@ class ItemHtmlPlugin
 			$tileDetailsHtml .= '<span class="tile-details-value">' . $this->calculatorHelper->formatBoxQuantity($boxes) . '</span></div>';
 			
 			$tileDetailsHtml .= '<div class="tile-details-item"><span class="tile-details-label">Area Coverage:</span>';
-			$tileDetailsHtml .= '<span class="tile-details-value">' . number_format($m2, 2) . ' m²</span></div>';
+			$tileDetailsHtml .= '<span class="tile-details-value">' . number_format($m2, 3) . ' m²</span></div>';
 			
 			$tileDetailsHtml .= '</div>';
 			

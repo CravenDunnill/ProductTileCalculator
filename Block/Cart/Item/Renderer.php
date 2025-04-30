@@ -120,7 +120,7 @@ class Renderer extends MagentoRenderer
 	 */
 	public function getFormattedAreaCovered()
 	{
-		return number_format($this->getAreaCovered(), 2) . ' m²';
+		return number_format($this->getAreaCovered(), 3) . ' m²';
 	}
 	
 	/**

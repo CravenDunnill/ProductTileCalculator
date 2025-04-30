@@ -94,6 +94,14 @@ define([
 				}
 			});
 			
+			// Function to calculate area from tiles and tiles per m²
+			function calculateAreaFromTiles(tilesQty, tilesPerM2) {
+				if (!tilesPerM2 || tilesPerM2 <= 0) {
+					return 0;
+				}
+				return tilesQty / tilesPerM2;
+			}
+			
 			// Add box quantity controls to mini cart
 			function updateMiniCart() {
 				// Find tile calculator items in mini cart

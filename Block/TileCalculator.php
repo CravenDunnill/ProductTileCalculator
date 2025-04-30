@@ -237,13 +237,13 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	}
 	
 	/**
-	 * Get total price per box
+	 * Get total price per box with VAT
 	 *
 	 * @return float
 	 */
 	public function getPricePerBox()
 	{
-		return $this->getPricePerTile() * $this->getBoxQuantity();
+		return $this->calculatorHelper->getPricePerBox($this->getProduct());
 	}
 	
 	/**
