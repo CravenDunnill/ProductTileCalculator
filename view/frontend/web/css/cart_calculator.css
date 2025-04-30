@@ -213,3 +213,11 @@
 		flex: 0 0 110px !important;
 	}
 }
+
+/* Set cart qty input width to 6rem and center text */
+.cart.table-wrapper .control.qty input.qty {
+	width: 6rem !important;
+	text-align: center !important;
+	border: 2px solid #122C58 !important;
+	border-radius: 6px !important;
+}
