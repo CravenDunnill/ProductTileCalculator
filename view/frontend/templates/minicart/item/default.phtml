@@ -17,6 +17,10 @@
 	<!-- ko if: product.box_quantity -->
 	<div class="minicart-tile-details">
 		<div class="tile-details-row">
+			<span class="tile-details-label" data-bind="i18n: 'Product Type:'"></span>
+			<span class="tile-details-value" data-bind="text: product.attribute_set_name || 'Default'"></span>
+		</div>
+		<div class="tile-details-row">
 			<span class="tile-details-label" data-bind="i18n: 'Colour:'"></span>
 			<span class="tile-details-value" data-bind="text: product.tile_colour_name || 'n/a'"></span>
 		</div>

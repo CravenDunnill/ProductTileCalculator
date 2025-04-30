@@ -22,7 +22,7 @@ if ($hasAllAttributes) {
 	// Fallback values for debugging/testing
 	$boxQuantity = $product->getData('box_quantity') ?: 10;
 	$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
-	$pricePerM2 = $product->getData('price_m2') ?: 25;
+	$pricePerM2 = $block->getPricePerM2(); // Now includes VAT
 	$pricePerTile = $block->getPricePerTile();
 	$pricePerBox = $boxQuantity * $pricePerTile;
 ?>
@@ -178,6 +178,8 @@ if ($hasAllAttributes) {
 		position: relative;
 		z-index: 2;
 	}
+	
+
 </style>
 
 <div class="tile-calculator-container" id="tile-calculator">
@@ -328,6 +330,7 @@ require(['jquery'], function($) {
 		// Configuration values
 		var boxQuantity = <?= /* @noEscape */ $boxQuantity ?>;
 		var tilePerM2 = <?= /* @noEscape */ $tilePerM2 ?>;
+		var pricePerM2 = <?= /* @noEscape */ $pricePerM2 ?>; // Now includes VAT
 		var pricePerBox = <?= /* @noEscape */ $pricePerBox ?>;
 		
 		// Elements

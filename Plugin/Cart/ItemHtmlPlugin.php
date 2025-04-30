@@ -12,6 +12,7 @@ use Magento\Checkout\Block\Cart\Item\Renderer;
 use CravenDunnill\ProductTileCalculator\Helper\Calculator;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Quote\Model\Quote\Item;
+use Magento\Eav\Api\AttributeSetRepositoryInterface;
 
 class ItemHtmlPlugin
 {
@@ -26,17 +27,25 @@ class ItemHtmlPlugin
 	private $layout;
 	
 	/**
+	 * @var AttributeSetRepositoryInterface
+	 */
+	private $attributeSetRepository;
+	
+	/**
 	 * Constructor
 	 *
 	 * @param Calculator $calculatorHelper
 	 * @param LayoutInterface $layout
+	 * @param AttributeSetRepositoryInterface $attributeSetRepository
 	 */
 	public function __construct(
 		Calculator $calculatorHelper,
-		LayoutInterface $layout
+		LayoutInterface $layout,
+		AttributeSetRepositoryInterface $attributeSetRepository
 	) {
 		$this->calculatorHelper = $calculatorHelper;
 		$this->layout = $layout;
+		$this->attributeSetRepository = $attributeSetRepository;
 	}
 	
 	/**
@@ -78,6 +87,19 @@ class ItemHtmlPlugin
 				$sizeValue = $product->getData('tile_size');
 			}
 			
+			// Get attribute set name
+			$attributeSetName = 'Default';
+			try {
+				$attributeSetId = $product->getAttributeSetId();
+				if ($attributeSetId) {
+					$attributeSet = $this->attributeSetRepository->get($attributeSetId);
+					$attributeSetName = $attributeSet->getAttributeSetName();
+				}
+			} catch (\Exception $e) {
+				// If there's an error, use default value
+				$attributeSetName = 'Default';
+			}
+			
 			// Get box quantity
 			$tilesPerBox = $this->calculatorHelper->getBoxQuantity($product);
 			
@@ -92,6 +114,11 @@ class ItemHtmlPlugin
 			
 			// Create tile details HTML
 			$tileDetailsHtml = '<div class="tile-details-cart">';
+			
+			// Add attribute set
+			$tileDetailsHtml .= '<div class="tile-details-item"><span class="tile-details-label">Product Type:</span>';
+			$tileDetailsHtml .= '<span class="tile-details-value">' . ($attributeSetName) . '</span></div>';
+			
 			$tileDetailsHtml .= '<div class="tile-details-item"><span class="tile-details-label">Colour:</span>';
 			$tileDetailsHtml .= '<span class="tile-details-value">' . ($colorValue ?: 'n/a') . '</span></div>';
 			

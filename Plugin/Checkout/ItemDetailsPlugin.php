@@ -10,6 +10,7 @@ namespace CravenDunnill\ProductTileCalculator\Plugin\Checkout;
 
 use Magento\Checkout\Block\Cart\Item\Renderer;
 use CravenDunnill\ProductTileCalculator\Helper\Calculator;
+use Magento\Eav\Api\AttributeSetRepositoryInterface;
 
 class ItemDetailsPlugin
 {
@@ -19,14 +20,22 @@ class ItemDetailsPlugin
 	protected $calculatorHelper;
 
 	/**
+	 * @var AttributeSetRepositoryInterface
+	 */
+	protected $attributeSetRepository;
+
+	/**
 	 * Constructor
 	 * 
 	 * @param Calculator $calculatorHelper
+	 * @param AttributeSetRepositoryInterface $attributeSetRepository
 	 */
 	public function __construct(
-		Calculator $calculatorHelper
+		Calculator $calculatorHelper,
+		AttributeSetRepositoryInterface $attributeSetRepository
 	) {
 		$this->calculatorHelper = $calculatorHelper;
+		$this->attributeSetRepository = $attributeSetRepository;
 	}
 
 	/**
@@ -57,6 +66,20 @@ class ItemDetailsPlugin
 		
 		// Add all relevant product attributes to the result
 		$result['product']['box_quantity'] = $boxQuantity;
+		
+		// Get attribute set name
+		$attributeSetName = 'Default';
+		try {
+			$attributeSetId = $product->getAttributeSetId();
+			if ($attributeSetId) {
+				$attributeSet = $this->attributeSetRepository->get($attributeSetId);
+				$attributeSetName = $attributeSet->getAttributeSetName();
+			}
+		} catch (\Exception $e) {
+			// If there's an error, use default value
+			$attributeSetName = 'Default';
+		}
+		$result['product']['attribute_set_name'] = $attributeSetName;
 		
 		// Get colour information
 		$colorValue = '';
@@ -94,6 +117,11 @@ class ItemDetailsPlugin
 		$m2 = $this->calculatorHelper->calculateM2FromBoxes($boxes, $product);
 		
 		// Add all the details
+		$result['options'][] = [
+			'label' => __('Product Type'),
+			'value' => $attributeSetName
+		];
+		
 		$result['options'][] = [
 			'label' => __('Colour'),
 			'value' => $colorValue ?: __('n/a')

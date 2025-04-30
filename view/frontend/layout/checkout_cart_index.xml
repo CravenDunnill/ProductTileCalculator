@@ -16,7 +16,11 @@
 			<block class="Magento\Framework\View\Element\Template" 
 				   name="cart.direct.injection.script" 
 				   template="CravenDunnill_ProductTileCalculator::cart/direct_injection.phtml"
-				   after="-" />
+				   after="-">
+				<arguments>
+					<argument name="product_attribute_view_model" xsi:type="object">CravenDunnill\ProductTileCalculator\ViewModel\ProductAttributeViewModel</argument>
+				</arguments>
+			</block>
 				   
 			<block class="Magento\Framework\View\Element\Template" 
 				   name="cart.calculator.js" 
@@ -29,5 +33,19 @@
 				   template="CravenDunnill_ProductTileCalculator::cart/box_price_js.phtml" 
 				   after="-" />
 		</referenceContainer>
+
+		<!-- Add custom renderer for cart items -->
+		<referenceBlock name="checkout.cart.item.renderers">
+			<block class="Magento\Checkout\Block\Cart\Item\Renderer" name="checkout.cart.item.renderers.default.product.attribute" template="CravenDunnill_ProductTileCalculator::cart/item/renderer.phtml" as="default">
+				<arguments>
+					<argument name="product_attribute_view_model" xsi:type="object">CravenDunnill\ProductTileCalculator\ViewModel\ProductAttributeViewModel</argument>
+				</arguments>
+			</block>
+			<block class="Magento\Checkout\Block\Cart\Item\Renderer" name="checkout.cart.item.renderers.simple.product.attribute" template="CravenDunnill_ProductTileCalculator::cart/item/renderer.phtml" as="simple">
+				<arguments>
+					<argument name="product_attribute_view_model" xsi:type="object">CravenDunnill\ProductTileCalculator\ViewModel\ProductAttributeViewModel</argument>
+				</arguments>
+			</block>
+		</referenceBlock>
 	</body>
 </page>

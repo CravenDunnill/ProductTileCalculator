@@ -27,6 +27,11 @@ class Calculator extends AbstractHelper
 	protected $priceCurrency;
 
 	/**
+	 * VAT multiplier (20% VAT)
+	 */
+	const VAT_MULTIPLIER = 1.2;
+
+	/**
 	 * Constructor
 	 *
 	 * @param Context $context
@@ -134,6 +139,32 @@ class Calculator extends AbstractHelper
 		}
 		
 		return (float)$product->getData('tile_per_m2') ?: 1;
+	}
+	
+	/**
+	 * Get price per m2 for a product (including VAT)
+	 *
+	 * @param Product|int $product
+	 * @return float
+	 */
+	public function getPricePerM2($product)
+	{
+		if (is_numeric($product)) {
+			try {
+				$product = $this->productRepository->getById($product);
+			} catch (\Exception $e) {
+				return 0;
+			}
+		}
+		
+		if (!$product instanceof Product) {
+			return 0;
+		}
+		
+		$exVatPrice = (float)$product->getData('price_m2') ?: 0;
+		
+		// Apply VAT
+		return $exVatPrice * self::VAT_MULTIPLIER;
 	}
 	
 	/**

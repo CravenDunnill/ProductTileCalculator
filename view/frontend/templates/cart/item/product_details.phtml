@@ -16,6 +16,21 @@ if (!$calculatorHelper->canUseCalculator($product)) {
 	return;
 }
 
+// Get attribute set name
+$attributeSetName = 'Default';
+try {
+	$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+	$attributeSetRepository = $objectManager->get(\Magento\Eav\Api\AttributeSetRepositoryInterface::class);
+	$attributeSetId = $product->getAttributeSetId();
+	if ($attributeSetId) {
+		$attributeSet = $attributeSetRepository->get($attributeSetId);
+		$attributeSetName = $attributeSet->getAttributeSetName();
+	}
+} catch (\Exception $e) {
+	// If there's an error, use default value
+	$attributeSetName = 'Default';
+}
+
 // Get colour information
 $colorValue = '';
 try {
@@ -52,6 +67,11 @@ $m2 = $calculatorHelper->calculateM2FromBoxes($boxes, $product);
 ?>
 
 <div class="tile-details-cart">
+	<div class="tile-details-item">
+		<span class="tile-details-label"><?= $block->escapeHtml(__('Product Type:')) ?></span>
+		<span class="tile-details-value"><?= $block->escapeHtml($attributeSetName) ?></span>
+	</div>
+	
 	<div class="tile-details-item">
 		<span class="tile-details-label"><?= $block->escapeHtml(__('Colour:')) ?></span>
 		<span class="tile-details-value"><?= $block->escapeHtml($colorValue ?: __('n/a')) ?></span>

@@ -11,7 +11,7 @@ define([
 	return function (config) {
 		var boxQuantity = config.boxQuantity,
 			tilePerM2 = config.tilePerM2,
-			pricePerM2 = config.pricePerM2,
+			pricePerM2 = config.pricePerM2, // Now includes VAT
 			pricePerBox = config.pricePerBox,
 			priceFormat = config.priceFormat,
 			
@@ -102,6 +102,8 @@ define([
 		function updateResults(boxes, m2) {
 			$boxesNeeded.text(boxes);
 			$areaCovered.text(m2.toFixed(2));
+			
+			// Calculate and display the total price (inc. VAT)
 			$totalPrice.html(formatPrice(boxes * pricePerBox));
 		}
 
@@ -199,6 +201,6 @@ define([
 		// Initial calculation
 		updateFromBoxes();
 		
-		console.log('Tile calculator initialized with boxQuantity:', boxQuantity);
+		console.log('Tile calculator initialized with boxQuantity:', boxQuantity, 'pricePerM2 (inc. VAT):', pricePerM2);
 	};
 });
