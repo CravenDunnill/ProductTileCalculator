@@ -161,13 +161,13 @@ if ($hasAllAttributes) {
 		left: 0;
 		width: 0%;
 		height: 100%;
-		background-color: #26B057;
+		background-color: #DB804A;
 		transition: width 0.3s ease;
 		z-index: -1;
 	}
 	
 	.tile-calculator-container .actions a:hover {
-		border-color: #26B057 !important;
+		border-color: #DB804A !important;
 	}
 	
 	.tile-calculator-container .actions a:hover::before {
@@ -248,7 +248,7 @@ if ($hasAllAttributes) {
 					<?= __('Order by m<sup>2</sup>') ?>
 				</label>
 				<div class="quantity-controls">
-					<button type="button" class="action minus" id="decrease-m2">
+					<button type="button" class="action minus" id="decrease-m2" data-role="decrease-m2">
 						<span>-</span>
 					</button>
 					<input type="text" 
@@ -257,7 +257,7 @@ if ($hasAllAttributes) {
 						   value="0.0" 
 						   class="input-text"
 						   style="text-align: center; margin: 0 5px;">
-					<button type="button" class="action plus" id="increase-m2">
+					<button type="button" class="action plus" id="increase-m2" data-role="increase-m2">
 						<span>+</span>
 					</button>
 				</div>
@@ -274,7 +274,7 @@ if ($hasAllAttributes) {
 					<?= __('Order by box') ?>
 				</label>
 				<div class="quantity-controls">
-					<button type="button" class="action minus" id="decrease-boxes">
+					<button type="button" class="action minus" id="decrease-boxes" data-role="decrease-boxes">
 						<span>-</span>
 					</button>
 					<input type="text" 
@@ -283,7 +283,7 @@ if ($hasAllAttributes) {
 						   value="1 box" 
 						   class="input-text"
 						   style="text-align: center;">
-					<button type="button" class="action plus" id="increase-boxes">
+					<button type="button" class="action plus" id="increase-boxes" data-role="increase-boxes">
 						<span>+</span>
 					</button>
 				</div>
@@ -432,6 +432,18 @@ require(['jquery'], function($) {
 			var totalPrice = boxes * pricePerBox;
 			var buttonBoxText = (boxes === 1) ? 'Box' : 'Boxes';
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
+			
+			// Update native form quantity and enable button
+			updateNativeForm(totalTiles);
+		}
+		
+		// Update the native Magento form values
+		function updateNativeForm(totalTiles) {
+			// Update the native quantity input
+			$qtyInput.val(totalTiles);
+			
+			// Enable the native add to cart button
+			$nativeAddToCartButton.prop('disabled', false);
 		}
 		
 		// Cart Function
@@ -519,7 +531,7 @@ require(['jquery'], function($) {
 		// Initialize Calculator
 		function initializeCalculator() {
 			// Set initial values
-			updateM2Display(0.0);
+			updateM2Display(calculateM2FromBoxes(1));
 			updateBoxesDisplay(1);
 			
 			// Calculate area covered by 1 box
@@ -535,6 +547,9 @@ require(['jquery'], function($) {
 			
 			// Update button text
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
+			
+			// Initialize the native form - THIS IS KEY FOR THE FIX
+			updateNativeForm(initialTotalTiles);
 		}
 		
 		// Initialize
