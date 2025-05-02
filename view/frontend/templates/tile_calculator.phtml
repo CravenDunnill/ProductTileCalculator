@@ -24,7 +24,7 @@ if ($hasAllAttributes) {
 	$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
 	$pricePerM2 = $block->getPricePerM2(); // Now includes VAT
 	$pricePerTile = $block->getPricePerTile();
-	$pricePerBox = $boxQuantity * $pricePerTile;
+	$pricePerBox = $block->getPricePerBox(); // Now uses helper method that includes VAT
 ?>
 
 <style>

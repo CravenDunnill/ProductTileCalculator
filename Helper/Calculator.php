@@ -168,6 +168,34 @@ class Calculator extends AbstractHelper
 	}
 	
 	/**
+	 * Get price per box for a product (including VAT)
+	 *
+	 * @param Product|int $product
+	 * @return float
+	 */
+	public function getPricePerBox($product)
+	{
+		if (is_numeric($product)) {
+			try {
+				$product = $this->productRepository->getById($product);
+			} catch (\Exception $e) {
+				return 0;
+			}
+		}
+		
+		if (!$product instanceof Product) {
+			return 0;
+		}
+		
+		$boxQuantity = $this->getBoxQuantity($product);
+		$pricePerTile = (float)$product->getPrice();
+		
+		// Calculate box price and apply VAT
+		$exVatPrice = $pricePerTile * $boxQuantity;
+		return $exVatPrice * self::VAT_MULTIPLIER;
+	}
+	
+	/**
 	 * Calculate boxes from tiles quantity
 	 *
 	 * @param int $tilesQty
