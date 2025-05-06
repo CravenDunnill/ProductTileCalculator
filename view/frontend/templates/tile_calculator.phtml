@@ -313,11 +313,30 @@ if ($hasAllAttributes) {
 		</a>
 	</div>
 	
-	<!-- Delivery information -->
+	<!-- Delivery information - only show when in stock or backorders allowed -->
+	<?php if ($product->getIsSalable() || (int)$product->getBackorders() > 0): ?>
 	<div class="delivery-info" style="margin-top: 15px; text-align: center;">
-		<p style="margin-bottom: 5px;"><?= __('Available for delivery in 2-3 working days') ?></p>
+		<p style="margin-bottom: 5px;">
+			<?php 
+			// Get lead times attribute
+			$leadTimes = '';
+			try {
+				$leadTimes = $product->getAttributeText('lead_times');
+				if (empty($leadTimes)) {
+					$leadTimes = $product->getData('lead_times');
+				}
+			} catch (\Exception $e) {
+				// If there's an error, try getData
+				$leadTimes = $product->getData('lead_times');
+			}
+			
+			// Display lead times without fallback
+			echo $block->escapeHtml($leadTimes);
+			?>
+		</p>
 		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery date and costs confirmed at checkout') ?></p>
 	</div>
+	<?php endif; ?>
 </div>
 
 <script>
