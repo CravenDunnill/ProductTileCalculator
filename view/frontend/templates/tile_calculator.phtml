@@ -13,7 +13,12 @@ if (!$block->isSimpleProduct()) {
 	return; // Only show calculator or warnings for simple products
 }
 
-// Get missing attributes
+// ONLY show the calculator for products in the "Tiles" attribute set
+if (!$block->isInTilesAttributeSet()) {
+	return; // Don't show anything for products in other attribute sets
+}
+
+// Now check for missing attributes only for "Tiles" products
 $missingAttributes = $block->getMissingAttributes();
 $hasAllAttributes = empty($missingAttributes);
 
@@ -22,9 +27,9 @@ if ($hasAllAttributes) {
 	// Fallback values for debugging/testing
 	$boxQuantity = $product->getData('box_quantity') ?: 10;
 	$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
-	$pricePerM2 = $product->getData('price_m2') ?: 25;
+	$pricePerM2 = $block->getPricePerM2(); // Now includes VAT
 	$pricePerTile = $block->getPricePerTile();
-	$pricePerBox = $boxQuantity * $pricePerTile;
+	$pricePerBox = $block->getPricePerBox(); // Now uses helper method that includes VAT
 ?>
 
 <style>
@@ -161,13 +166,13 @@ if ($hasAllAttributes) {
 		left: 0;
 		width: 0%;
 		height: 100%;
-		background-color: #26B057;
+		background-color: #DB804A;
 		transition: width 0.3s ease;
 		z-index: -1;
 	}
 	
 	.tile-calculator-container .actions a:hover {
-		border-color: #26B057 !important;
+		border-color: #DB804A !important;
 	}
 	
 	.tile-calculator-container .actions a:hover::before {
@@ -178,6 +183,8 @@ if ($hasAllAttributes) {
 		position: relative;
 		z-index: 2;
 	}
+	
+
 </style>
 
 <div class="tile-calculator-container" id="tile-calculator">
@@ -226,7 +233,7 @@ if ($hasAllAttributes) {
 	</div>
 	
 	<!-- Availability information -->
-	<div>
+	<div style="display: none;">
 		<?php if ($product->getIsSalable()): ?>
 			<span class="availability-badge in-stock"><?= __('In Stock') ?></span>
 		<?php else: ?>
@@ -246,7 +253,7 @@ if ($hasAllAttributes) {
 					<?= __('Order by m<sup>2</sup>') ?>
 				</label>
 				<div class="quantity-controls">
-					<button type="button" class="action minus" id="decrease-m2">
+					<button type="button" class="action minus" id="decrease-m2" data-role="decrease-m2">
 						<span>-</span>
 					</button>
 					<input type="text" 
@@ -255,12 +262,12 @@ if ($hasAllAttributes) {
 						   value="0.0" 
 						   class="input-text"
 						   style="text-align: center; margin: 0 5px;">
-					<button type="button" class="action plus" id="increase-m2">
+					<button type="button" class="action plus" id="increase-m2" data-role="increase-m2">
 						<span>+</span>
 					</button>
 				</div>
 				<!-- Pricing info below the input -->
-				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: normal;">
+				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: 200;">
 					<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
 				</div>
 			</div>
@@ -272,7 +279,7 @@ if ($hasAllAttributes) {
 					<?= __('Order by box') ?>
 				</label>
 				<div class="quantity-controls">
-					<button type="button" class="action minus" id="decrease-boxes">
+					<button type="button" class="action minus" id="decrease-boxes" data-role="decrease-boxes">
 						<span>-</span>
 					</button>
 					<input type="text" 
@@ -281,13 +288,13 @@ if ($hasAllAttributes) {
 						   value="1 box" 
 						   class="input-text"
 						   style="text-align: center;">
-					<button type="button" class="action plus" id="increase-boxes">
+					<button type="button" class="action plus" id="increase-boxes" data-role="increase-boxes">
 						<span>+</span>
 					</button>
 				</div>
 				<!-- Pricing info below the input -->
-				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: normal;">
-					<?= __('&pound;%1 per box (%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: 200;">
+					<?= __('&pound;%1 per box<br>(%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
 				</div>
 			</div>
 		</div>
@@ -311,11 +318,30 @@ if ($hasAllAttributes) {
 		</a>
 	</div>
 	
-	<!-- Delivery information -->
+	<!-- Delivery information - only show when in stock or backorders allowed -->
+	<?php if ($product->getIsSalable() || (int)$product->getBackorders() > 0): ?>
 	<div class="delivery-info" style="margin-top: 15px; text-align: center;">
-		<p style="margin-bottom: 5px;"><?= __('Available for delivery in 1-2 working days') ?></p>
+		<p style="margin-bottom: 5px;">
+			<?php 
+			// Get lead times attribute
+			$leadTimes = '';
+			try {
+				$leadTimes = $product->getAttributeText('lead_times');
+				if (empty($leadTimes)) {
+					$leadTimes = $product->getData('lead_times');
+				}
+			} catch (\Exception $e) {
+				// If there's an error, try getData
+				$leadTimes = $product->getData('lead_times');
+			}
+			
+			// Display lead times without fallback
+			echo $block->escapeHtml($leadTimes);
+			?>
+		</p>
 		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery date and costs confirmed at checkout') ?></p>
 	</div>
+	<?php endif; ?>
 </div>
 
 <script>
@@ -328,6 +354,7 @@ require(['jquery'], function($) {
 		// Configuration values
 		var boxQuantity = <?= /* @noEscape */ $boxQuantity ?>;
 		var tilePerM2 = <?= /* @noEscape */ $tilePerM2 ?>;
+		var pricePerM2 = <?= /* @noEscape */ $pricePerM2 ?>; // Now includes VAT
 		var pricePerBox = <?= /* @noEscape */ $pricePerBox ?>;
 		
 		// Elements
@@ -367,7 +394,7 @@ require(['jquery'], function($) {
 		// Update Functions
 		function updateM2Display(value) {
 			// ALWAYS set as numeric only - NO UNITS
-			$m2Input.val(parseFloat(value).toFixed(1));
+			$m2Input.val(parseFloat(value).toFixed(3));
 		}
 		
 		function updateBoxesDisplay(value) {
@@ -422,13 +449,25 @@ require(['jquery'], function($) {
 			
 			// Update the result text
 			$('#result-box-text').text((boxes === 1) ? '1 box' : boxes + ' boxes');
-			$areaCovered.text(exactAreaCovered.toFixed(1));
+			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(totalTiles);
 			
 			// Update button text
 			var totalPrice = boxes * pricePerBox;
 			var buttonBoxText = (boxes === 1) ? 'Box' : 'Boxes';
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
+			
+			// Update native form quantity and enable button
+			updateNativeForm(totalTiles);
+		}
+		
+		// Update the native Magento form values
+		function updateNativeForm(totalTiles) {
+			// Update the native quantity input
+			$qtyInput.val(totalTiles);
+			
+			// Enable the native add to cart button
+			$nativeAddToCartButton.prop('disabled', false);
 		}
 		
 		// Cart Function
@@ -516,7 +555,7 @@ require(['jquery'], function($) {
 		// Initialize Calculator
 		function initializeCalculator() {
 			// Set initial values
-			updateM2Display(0.0);
+			updateM2Display(calculateM2FromBoxes(1));
 			updateBoxesDisplay(1);
 			
 			// Calculate area covered by 1 box
@@ -527,11 +566,14 @@ require(['jquery'], function($) {
 			
 			// Update result text
 			$('#result-box-text').text('1 box');
-			$areaCovered.text(exactAreaCovered.toFixed(1));
+			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(initialTotalTiles);
 			
 			// Update button text
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
+			
+			// Initialize the native form - THIS IS KEY FOR THE FIX
+			updateNativeForm(initialTotalTiles);
 		}
 		
 		// Initialize

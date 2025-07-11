@@ -11,7 +11,7 @@ define([
 	return function (config) {
 		var boxQuantity = config.boxQuantity,
 			tilePerM2 = config.tilePerM2,
-			pricePerM2 = config.pricePerM2,
+			pricePerM2 = config.pricePerM2, // Now includes VAT
 			pricePerBox = config.pricePerBox,
 			priceFormat = config.priceFormat,
 			
@@ -89,7 +89,7 @@ define([
 			}
 			
 			m2 = calculateM2FromBoxes(boxes);
-			$m2Input.val(m2.toFixed(2));
+			$m2Input.val(m2.toFixed(3));
 			updateResults(boxes, m2);
 		}
 
@@ -101,7 +101,9 @@ define([
 		 */
 		function updateResults(boxes, m2) {
 			$boxesNeeded.text(boxes);
-			$areaCovered.text(m2.toFixed(2));
+			$areaCovered.text(m2.toFixed(3));
+			
+			// Calculate and display the total price (inc. VAT)
 			$totalPrice.html(formatPrice(boxes * pricePerBox));
 		}
 
@@ -130,7 +132,7 @@ define([
 			e.preventDefault();
 			e.stopPropagation();
 			var currentValue = parseFloat($m2Input.val()) || 0;
-			$m2Input.val((currentValue + 0.1).toFixed(1));
+			$m2Input.val((currentValue + 0.1).toFixed(3));
 			updateFromM2();
 			return false;
 		}
@@ -144,7 +146,7 @@ define([
 			e.stopPropagation();
 			var currentValue = parseFloat($m2Input.val()) || 0;
 			if (currentValue > 0.1) {
-				$m2Input.val((currentValue - 0.1).toFixed(1));
+				$m2Input.val((currentValue - 0.1).toFixed(3));
 				updateFromM2();
 			}
 			return false;
@@ -199,6 +201,6 @@ define([
 		// Initial calculation
 		updateFromBoxes();
 		
-		console.log('Tile calculator initialized with boxQuantity:', boxQuantity);
+		console.log('Tile calculator initialized with boxQuantity:', boxQuantity, 'pricePerM2 (inc. VAT):', pricePerM2);
 	};
 });

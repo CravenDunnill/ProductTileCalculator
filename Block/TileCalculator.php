@@ -14,6 +14,8 @@ use Magento\Framework\Registry;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\Product\Type;
+use CravenDunnill\ProductTileCalculator\Helper\Calculator;
+use Magento\Eav\Api\AttributeSetRepositoryInterface;
 
 class TileCalculator extends \Magento\Catalog\Block\Product\View
 {
@@ -46,6 +48,16 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	 * @var StoreManagerInterface
 	 */
 	protected $_storeManager;
+	
+	/**
+	 * @var Calculator
+	 */
+	protected $calculatorHelper;
+	
+	/**
+	 * @var AttributeSetRepositoryInterface
+	 */
+	protected $attributeSetRepository;
 
 	/**
 	 * Required attribute codes for the calculator
@@ -73,6 +85,8 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	 * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
 	 * @param FormKey $formKey
 	 * @param StoreManagerInterface $storeManager
+	 * @param Calculator $calculatorHelper
+	 * @param AttributeSetRepositoryInterface $attributeSetRepository
 	 * @param array $data
 	 */
 	public function __construct(
@@ -88,6 +102,8 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 		\Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
 		FormKey $formKey,
 		StoreManagerInterface $storeManager,
+		Calculator $calculatorHelper,
+		AttributeSetRepositoryInterface $attributeSetRepository,
 		array $data = []
 	) {
 		$this->_registry = $context->getRegistry();
@@ -96,6 +112,8 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 		$this->priceCurrency = $priceCurrency;
 		$this->formKey = $formKey;
 		$this->_storeManager = $storeManager;
+		$this->calculatorHelper = $calculatorHelper;
+		$this->attributeSetRepository = $attributeSetRepository;
 		
 		parent::__construct(
 			$context,
@@ -131,6 +149,42 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	{
 		$product = $this->getProduct();
 		return $product && $product->getTypeId() === Type::TYPE_SIMPLE;
+	}
+	
+	/**
+	 * Get the attribute set name for the current product
+	 * 
+	 * @return string|null
+	 */
+	public function getProductAttributeSetName()
+	{
+		$product = $this->getProduct();
+		if (!$product) {
+			return null;
+		}
+		
+		try {
+			$attributeSetId = $product->getAttributeSetId();
+			if ($attributeSetId) {
+				$attributeSet = $this->attributeSetRepository->get($attributeSetId);
+				return $attributeSet->getAttributeSetName();
+			}
+		} catch (\Exception $e) {
+			// Log error if needed
+			return null;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Check if the product is in the "Tiles" attribute set
+	 * 
+	 * @return bool
+	 */
+	public function isInTilesAttributeSet()
+	{
+		return $this->getProductAttributeSetName() === 'Tiles';
 	}
 
 	/**
@@ -183,6 +237,11 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 			return false;
 		}
 		
+		// Only show calculator for products in "Tiles" attribute set
+		if (!$this->isInTilesAttributeSet()) {
+			return false;
+		}
+		
 		// Check if any required attributes are missing
 		return empty($this->getMissingAttributes());
 	}
@@ -208,13 +267,13 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	}
 	
 	/**
-	 * Get price per m2 attribute value
+	 * Get price per m2 attribute value with VAT
 	 *
 	 * @return float
 	 */
 	public function getPricePerM2()
 	{
-		return (float)$this->getProduct()->getData('price_m2');
+		return $this->calculatorHelper->getPricePerM2($this->getProduct());
 	}
 	
 	/**
@@ -228,13 +287,13 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	}
 	
 	/**
-	 * Get total price per box
+	 * Get total price per box with VAT
 	 *
 	 * @return float
 	 */
 	public function getPricePerBox()
 	{
-		return $this->getPricePerTile() * $this->getBoxQuantity();
+		return $this->calculatorHelper->getPricePerBox($this->getProduct());
 	}
 	
 	/**
@@ -245,8 +304,7 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	 */
 	public function calculateM2FromBoxes($boxes)
 	{
-		$tilesInBoxes = $boxes * $this->getBoxQuantity();
-		return $tilesInBoxes / $this->getTilePerM2();
+		return $this->calculatorHelper->calculateM2FromBoxes($boxes, $this->getProduct());
 	}
 	
 	/**
@@ -257,8 +315,7 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	 */
 	public function calculateBoxesFromM2($squareMeters)
 	{
-		$tilesNeeded = $squareMeters * $this->getTilePerM2();
-		return ceil($tilesNeeded / $this->getBoxQuantity());
+		return $this->calculatorHelper->calculateBoxesFromM2($squareMeters, $this->getProduct());
 	}
 
 	/**
