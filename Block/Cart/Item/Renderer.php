@@ -146,4 +146,74 @@ class Renderer extends MagentoRenderer
 		
 		return (int)$this->calculatorHelper->getBoxQuantity($product);
 	}
+	
+	/**
+	 * Get special price per m2 for the current item
+	 *
+	 * @return float|null
+	 */
+	public function getSpecialPricePerM2()
+	{
+		$item = $this->getItem();
+		$product = $item->getProduct();
+		
+		return $this->calculatorHelper->getSpecialPricePerM2($product);
+	}
+	
+	/**
+	 * Get regular price per m2 for the current item
+	 *
+	 * @return float
+	 */
+	public function getRegularPricePerM2()
+	{
+		$item = $this->getItem();
+		$product = $item->getProduct();
+		
+		return $this->calculatorHelper->getPricePerM2($product);
+	}
+	
+	/**
+	 * Check if item has special pricing
+	 *
+	 * @return bool
+	 */
+	public function hasSpecialPricing()
+	{
+		$item = $this->getItem();
+		$product = $item->getProduct();
+		
+		return $this->calculatorHelper->hasSpecialPrice($product);
+	}
+	
+	/**
+	 * Get formatted price per m2 display for cart
+	 *
+	 * @return string
+	 */
+	public function getFormattedPricePerM2Display()
+	{
+		if ($this->hasSpecialPricing() && $this->getSpecialPricePerM2() !== null) {
+			$regularPrice = $this->formatPrice($this->getRegularPricePerM2());
+			$specialPrice = $this->formatPrice($this->getSpecialPricePerM2());
+			
+			return '<span class="old-price" style="text-decoration: line-through; color: #666;">' . 
+				   $regularPrice . '</span><br>' .
+				   '<span class="special-price" style="color: #ff0000; font-weight: 600;">NOW ' . 
+				   $specialPrice . ' per m²</span>';
+		}
+		
+		return $this->formatPrice($this->getRegularPricePerM2()) . ' per m²';
+	}
+	
+	/**
+	 * Format price using price currency
+	 *
+	 * @param float $price
+	 * @return string
+	 */
+	private function formatPrice($price)
+	{
+		return $this->_priceCurrency->format($price, false);
+	}
 }

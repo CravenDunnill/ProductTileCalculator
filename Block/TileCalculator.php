@@ -297,6 +297,56 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	}
 	
 	/**
+	 * Get special price per m2 attribute value with VAT
+	 *
+	 * @return float|null
+	 */
+	public function getSpecialPricePerM2()
+	{
+		return $this->calculatorHelper->getSpecialPricePerM2($this->getProduct());
+	}
+	
+	/**
+	 * Get special price per box with VAT
+	 *
+	 * @return float|null
+	 */
+	public function getSpecialPricePerBox()
+	{
+		return $this->calculatorHelper->getSpecialPricePerBox($this->getProduct());
+	}
+	
+	/**
+	 * Check if product has special pricing
+	 *
+	 * @return bool
+	 */
+	public function hasSpecialPrice()
+	{
+		return $this->calculatorHelper->hasSpecialPrice($this->getProduct());
+	}
+	
+	/**
+	 * Get effective price per m2 (special or regular)
+	 *
+	 * @return float
+	 */
+	public function getEffectivePricePerM2()
+	{
+		return $this->calculatorHelper->getEffectivePricePerM2($this->getProduct());
+	}
+	
+	/**
+	 * Get effective price per box (special or regular)
+	 *
+	 * @return float
+	 */
+	public function getEffectivePricePerBox()
+	{
+		return $this->calculatorHelper->getEffectivePricePerBox($this->getProduct());
+	}
+	
+	/**
 	 * Calculate m2 from boxes
 	 *
 	 * @param float $boxes

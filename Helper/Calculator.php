@@ -220,6 +220,104 @@ class Calculator extends AbstractHelper
 	}
 	
 	/**
+	 * Get special price per m2 for a product (including VAT)
+	 *
+	 * @param Product|int $product
+	 * @return float|null
+	 */
+	public function getSpecialPricePerM2($product)
+	{
+		if (is_numeric($product)) {
+			try {
+				$product = $this->productRepository->getById($product);
+			} catch (\Exception $e) {
+				return null;
+			}
+		}
+		
+		if (!$product instanceof Product) {
+			return null;
+		}
+		
+		$specialPriceM2 = $product->getData('special_price_m2');
+		if ($specialPriceM2 === null || $specialPriceM2 === '' || $specialPriceM2 <= 0) {
+			return null;
+		}
+		
+		// Apply VAT
+		return (float)$specialPriceM2 * self::VAT_MULTIPLIER;
+	}
+	
+	/**
+	 * Get special price per box for a product (including VAT)
+	 *
+	 * @param Product|int $product
+	 * @return float|null
+	 */
+	public function getSpecialPricePerBox($product)
+	{
+		if (is_numeric($product)) {
+			try {
+				$product = $this->productRepository->getById($product);
+			} catch (\Exception $e) {
+				return null;
+			}
+		}
+		
+		if (!$product instanceof Product) {
+			return null;
+		}
+		
+		// Check if product has a special price
+		$specialPrice = $product->getSpecialPrice();
+		if ($specialPrice === null || $specialPrice <= 0) {
+			return null;
+		}
+		
+		$boxQuantity = $this->getBoxQuantity($product);
+		
+		// Calculate special box price and apply VAT
+		$exVatPrice = (float)$specialPrice * $boxQuantity;
+		return $exVatPrice * self::VAT_MULTIPLIER;
+	}
+	
+	/**
+	 * Check if product has any special pricing
+	 *
+	 * @param Product|int $product
+	 * @return bool
+	 */
+	public function hasSpecialPrice($product)
+	{
+		return $this->getSpecialPricePerM2($product) !== null || 
+			   $this->getSpecialPricePerBox($product) !== null;
+	}
+	
+	/**
+	 * Get the effective price per m2 (special or regular)
+	 *
+	 * @param Product|int $product
+	 * @return float
+	 */
+	public function getEffectivePricePerM2($product)
+	{
+		$specialPrice = $this->getSpecialPricePerM2($product);
+		return $specialPrice !== null ? $specialPrice : $this->getPricePerM2($product);
+	}
+	
+	/**
+	 * Get the effective price per box (special or regular)
+	 *
+	 * @param Product|int $product
+	 * @return float
+	 */
+	public function getEffectivePricePerBox($product)
+	{
+		$specialPrice = $this->getSpecialPricePerBox($product);
+		return $specialPrice !== null ? $specialPrice : $this->getPricePerBox($product);
+	}
+	
+	/**
 	 * Calculate boxes from tiles quantity
 	 *
 	 * @param int $tilesQty

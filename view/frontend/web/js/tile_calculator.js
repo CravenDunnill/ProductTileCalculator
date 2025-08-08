@@ -11,8 +11,19 @@ define([
 	return function (config) {
 		var boxQuantity = config.boxQuantity,
 			tilePerM2 = config.tilePerM2,
-			pricePerM2 = config.pricePerM2, // Now includes VAT
-			pricePerBox = config.pricePerBox,
+			
+			// Use effective prices (special if available, otherwise regular)
+			pricePerM2 = config.effectivePricePerM2 || config.pricePerM2,
+			pricePerBox = config.effectivePricePerBox || config.pricePerBox,
+			
+			// Original prices for display
+			originalPricePerM2 = config.pricePerM2,
+			originalPricePerBox = config.pricePerBox,
+			
+			// Special prices (may be null)
+			specialPricePerM2 = config.specialPricePerM2,
+			specialPricePerBox = config.specialPricePerBox,
+			
 			priceFormat = config.priceFormat,
 			
 			// DOM elements
@@ -103,7 +114,7 @@ define([
 			$boxesNeeded.text(boxes);
 			$areaCovered.text(m2.toFixed(3));
 			
-			// Calculate and display the total price (inc. VAT)
+			// Calculate and display the total price using effective price
 			$totalPrice.html(formatPrice(boxes * pricePerBox));
 		}
 
@@ -201,6 +212,6 @@ define([
 		// Initial calculation
 		updateFromBoxes();
 		
-		console.log('Tile calculator initialized with boxQuantity:', boxQuantity, 'pricePerM2 (inc. VAT):', pricePerM2);
+		console.log('Tile calculator initialized with effective prices - M2:', pricePerM2, 'Box:', pricePerBox);
 	};
 });

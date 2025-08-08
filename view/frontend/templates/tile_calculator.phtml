@@ -27,9 +27,21 @@ if ($hasAllAttributes) {
 	// Fallback values for debugging/testing
 	$boxQuantity = $product->getData('box_quantity') ?: 10;
 	$tilePerM2 = $product->getData('tile_per_m2') ?: 8;
-	$pricePerM2 = $block->getPricePerM2(); // Now includes VAT
+	
+	// Regular prices (includes VAT)
+	$pricePerM2 = $block->getPricePerM2();
 	$pricePerTile = $block->getPricePerTile();
-	$pricePerBox = $block->getPricePerBox(); // Now uses helper method that includes VAT
+	$pricePerBox = $block->getPricePerBox();
+	
+	// Special prices (includes VAT)
+	$specialPricePerM2 = $block->getSpecialPricePerM2();
+	$specialPricePerBox = $block->getSpecialPricePerBox();
+	
+	// Effective prices (special if available, otherwise regular)
+	$effectivePricePerM2 = $block->getEffectivePricePerM2();
+	$effectivePricePerBox = $block->getEffectivePricePerBox();
+	
+	$hasSpecialPrice = $block->hasSpecialPrice();
 ?>
 
 <style>
@@ -184,6 +196,17 @@ if ($hasAllAttributes) {
 		z-index: 2;
 	}
 	
+	/* Special price styling */
+	.price-info .original-price {
+		text-decoration: line-through;
+		color: #666;
+		font-weight: 200;
+	}
+	
+	.price-info .special-price {
+		color: #ff0000;
+		font-weight: 600;
+	}
 
 </style>
 
@@ -246,7 +269,7 @@ if ($hasAllAttributes) {
 	
 	<div class="calculator-inputs">
 		<div class="input-row" style="display: flex; justify-content: space-between; gap: 20px;">
-			<!-- SWAPPED: Area in m² (now left) -->
+			<!-- Area in m² (left) -->
 			<div class="input-group" style="flex: 1;">
 				<!-- New heading above the input -->
 				<label for="calculator-m2">
@@ -268,11 +291,18 @@ if ($hasAllAttributes) {
 				</div>
 				<!-- Pricing info below the input -->
 				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: 200;">
-					<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
+					<?php if ($specialPricePerM2 !== null): ?>
+						<span class="original-price"><?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?></span>
+						<br><span class="special-price">
+							<?= __('&pound;%1 per m<sup>2</sup>', number_format($specialPricePerM2, 2)) ?>
+						</span>
+					<?php else: ?>
+						<?= __('&pound;%1 per m<sup>2</sup>', number_format($pricePerM2, 2)) ?>
+					<?php endif; ?>
 				</div>
 			</div>
 			
-			<!-- SWAPPED: Number of Boxes (now right) -->
+			<!-- Number of Boxes (right) -->
 			<div class="input-group" style="flex: 1;">
 				<!-- New heading above the input -->
 				<label for="calculator-boxes">
@@ -294,7 +324,15 @@ if ($hasAllAttributes) {
 				</div>
 				<!-- Pricing info below the input -->
 				<div class="price-info" style="font-size: 12px; margin-top: 5px; font-weight: 200;">
-					<?= __('&pound;%1 per box<br>(%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+					<?php if ($specialPricePerBox !== null): ?>
+						<span class="original-price"><?= __('&pound;%1 per box', number_format($pricePerBox, 2)) ?></span>
+						<br><span class="special-price">
+							<?= __('&pound;%1 per box', number_format($specialPricePerBox, 2)) ?>
+						</span>
+						<br><?= __('(%1 tiles per box)', $boxQuantity) ?>
+					<?php else: ?>
+						<?= __('&pound;%1 per box<br>(%2 tiles per box)', number_format($pricePerBox, 2), $boxQuantity) ?>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -314,7 +352,7 @@ if ($hasAllAttributes) {
 		   class="action primary" 
 		   id="calculator-add-to-cart"
 		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
-			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($pricePerBox, 2)) ?></span>
+			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($effectivePricePerBox, 2)) ?></span>
 		</a>
 	</div>
 	
@@ -354,8 +392,10 @@ require(['jquery'], function($) {
 		// Configuration values
 		var boxQuantity = <?= /* @noEscape */ $boxQuantity ?>;
 		var tilePerM2 = <?= /* @noEscape */ $tilePerM2 ?>;
-		var pricePerM2 = <?= /* @noEscape */ $pricePerM2 ?>; // Now includes VAT
-		var pricePerBox = <?= /* @noEscape */ $pricePerBox ?>;
+		
+		// Use effective prices (special if available, otherwise regular)
+		var pricePerM2 = <?= /* @noEscape */ $effectivePricePerM2 ?>;
+		var pricePerBox = <?= /* @noEscape */ $effectivePricePerBox ?>;
 		
 		// Elements
 		var $m2Input = $('#calculator-m2');
@@ -452,7 +492,7 @@ require(['jquery'], function($) {
 			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(totalTiles);
 			
-			// Update button text
+			// Update button text with effective price
 			var totalPrice = boxes * pricePerBox;
 			var buttonBoxText = (boxes === 1) ? 'Box' : 'Boxes';
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
@@ -569,10 +609,10 @@ require(['jquery'], function($) {
 			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(initialTotalTiles);
 			
-			// Update button text
+			// Update button text with effective price
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
 			
-			// Initialize the native form - THIS IS KEY FOR THE FIX
+			// Initialize the native form
 			updateNativeForm(initialTotalTiles);
 		}
 		

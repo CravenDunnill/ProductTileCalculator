@@ -94,6 +94,22 @@ class EnsureAttributesVisibility implements DataPatchInterface
 				'unique' => false,
 				'apply_to' => 'simple',
 				'group' => 'Tile Calculator'
+			],
+			'special_price_m2' => [
+				'type' => 'decimal',
+				'label' => 'Special Price per m²',
+				'input' => 'price',
+				'required' => false,
+				'user_defined' => true,
+				'searchable' => false,
+				'filterable' => false,
+				'comparable' => false,
+				'visible_on_front' => false,
+				'used_in_product_listing' => true,
+				'unique' => false,
+				'apply_to' => 'simple',
+				'group' => 'Tile Calculator',
+				'note' => 'Special/Sale price per m² (excluding VAT)'
 			]
 		];
 		
