@@ -356,11 +356,12 @@ if ($hasAllAttributes) {
 		</a>
 	</div>
 
-	<div class="payment-options">
+	<div class="payment-options" style="display: grid; padding: 5px 0;">
 		<klarna-placement
+		  id="klarna-widget"
 		  data-key="credit-promotion-auto-size"
 		  data-locale="en-GB"
-	  	  data-purchase-amount="<?= number_format($effectivePricePerBox, 2) ?>"
+			data-purchase-amount="<?= (int)($effectivePricePerBox * 100) ?>"
 		></klarna-placement>
 	</div>
 	
@@ -412,6 +413,7 @@ require(['jquery'], function($) {
 		var $totalTiles = $('#total-tiles');
 		var $updateQuantityText = $('#update-quantity-text');
 		var $addToCartButton = $('#calculator-add-to-cart');
+		var $klarnaWidget = $('#klarna-widget');
 		
 		// Native form elements
 		var $qtyInput = $('#qty');
@@ -449,6 +451,26 @@ require(['jquery'], function($) {
 			// Set with "box" or "boxes" unit
 			var boxText = (value === 1) ? '1 box' : value + ' boxes';
 			$boxesInput.val(boxText);
+		}
+		
+		// Update Klarna widget with new purchase amount
+		function updateKlarnaWidget(totalPrice) {
+			// Convert price to pence/cents (multiply by 100 and remove decimals)
+			var purchaseAmount = Math.round(totalPrice * 100);
+			
+			// Update the data attribute
+			$klarnaWidget.attr('data-purchase-amount', purchaseAmount);
+			
+			// Try to refresh the Klarna widget if the API is available
+			if (window.Klarna && window.Klarna.OnsiteMessaging) {
+				try {
+					window.Klarna.OnsiteMessaging.refresh();
+				} catch (e) {
+					console.log('Klarna refresh not available:', e);
+				}
+			}
+			
+			console.log('Updated Klarna widget purchase amount to:', purchaseAmount, '(£' + totalPrice.toFixed(2) + ')');
 		}
 		
 		function updateFromM2() {
@@ -495,15 +517,20 @@ require(['jquery'], function($) {
 			// Calculate total tiles
 			var totalTiles = boxes * boxQuantity;
 			
+			// Calculate total price
+			var totalPrice = boxes * pricePerBox;
+			
 			// Update the result text
 			$('#result-box-text').text((boxes === 1) ? '1 box' : boxes + ' boxes');
 			$areaCovered.text(exactAreaCovered.toFixed(3));
 			$totalTiles.text(totalTiles);
 			
 			// Update button text with effective price
-			var totalPrice = boxes * pricePerBox;
 			var buttonBoxText = (boxes === 1) ? 'Box' : 'Boxes';
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
+			
+			// Update Klarna widget
+			updateKlarnaWidget(totalPrice);
 			
 			// Update native form quantity and enable button
 			updateNativeForm(totalTiles);
@@ -619,6 +646,9 @@ require(['jquery'], function($) {
 			
 			// Update button text with effective price
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
+			
+			// Initialize Klarna widget
+			updateKlarnaWidget(pricePerBox);
 			
 			// Initialize the native form
 			updateNativeForm(initialTotalTiles);
