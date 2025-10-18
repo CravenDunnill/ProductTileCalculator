@@ -355,6 +355,14 @@ if ($hasAllAttributes) {
 			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($effectivePricePerBox, 2)) ?></span>
 		</a>
 	</div>
+
+	<div class="payment-options">
+		<klarna-placement
+		  data-key="credit-promotion-auto-size"
+		  data-locale="en-GB"
+	  	  data-purchase-amount="<?= number_format($effectivePricePerBox, 2) ?>"
+		></klarna-placement>
+	</div>
 	
 	<!-- Delivery information - only show when in stock or backorders allowed -->
 	<?php if ($product->getIsSalable() || (int)$product->getBackorders() > 0): ?>
