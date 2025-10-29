@@ -363,6 +363,15 @@ if ($hasAllAttributes) {
 		  data-locale="en-GB"
 			data-purchase-amount="<?= (int)($effectivePricePerBox * 100) ?>"
 		></klarna-placement>
+
+		<div
+			class="paypal-paylater"
+			data-pp-message
+			data-pp-style-layout="text"
+			data-pp-style-logo-type="inline"
+			data-pp-style-text-color="black"
+			data-pp-amount="<?= (int)($effectivePricePerBox) ?>">
+		</div>
 	</div>
 	
 	<!-- Delivery information - only show when in stock or backorders allowed -->
