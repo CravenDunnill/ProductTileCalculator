@@ -42,6 +42,17 @@ if ($hasAllAttributes) {
 	$effectivePricePerBox = $block->getEffectivePricePerBox();
 	
 	$hasSpecialPrice = $block->hasSpecialPrice();
+	
+	// Get lead times for modal check
+	$leadTimes = '';
+	try {
+		$leadTimes = $product->getAttributeText('lead_times');
+		if (empty($leadTimes)) {
+			$leadTimes = $product->getData('lead_times');
+		}
+	} catch (\Exception $e) {
+		$leadTimes = $product->getData('lead_times');
+	}
 ?>
 
 <style>
@@ -207,6 +218,127 @@ if ($hasAllAttributes) {
 		color: #ff0000;
 		font-weight: 600;
 	}
+	
+	/* Delivery Confirmation Modal Styles */
+	.delivery-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 9999;
+	}
+	
+	.delivery-modal-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.6);
+	}
+	
+	.delivery-modal-content {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: white;
+		border-radius: 8px;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		max-width: 500px;
+		width: 90%;
+		max-height: 90vh;
+		overflow-y: auto;
+	}
+	
+	.delivery-modal-header {
+		padding: 20px;
+		border-bottom: 1px solid #e8e8e8;
+	}
+	
+	.delivery-modal-header h3 {
+		margin: 0;
+		font-size: 20px;
+		font-weight: 600;
+		color: #002C5A;
+	}
+	
+	.delivery-modal-body {
+		padding: 25px 20px;
+	}
+	
+	.delivery-modal-body p {
+		margin: 0 0 15px 0;
+		line-height: 1.6;
+		color: #333;
+	}
+	
+	.delivery-modal-body .delivery-time-text {
+		background-color: #F4F9FF;
+		padding: 15px;
+		border-radius: 6px;
+		border-left: 4px solid #002C5A;
+		margin: 20px 0;
+	}
+	
+	.delivery-modal-body .delivery-time-text strong {
+		color: #002C5A;
+		font-size: 16px;
+	}
+	
+	.delivery-modal-footer {
+		padding: 15px 20px;
+		border-top: 1px solid #e8e8e8;
+		display: flex;
+		gap: 10px;
+		justify-content: flex-end;
+	}
+	
+	.delivery-modal-footer button {
+		padding: 12px 24px;
+		border-radius: 6px;
+		font-size: 16px;
+		cursor: pointer;
+		border: 2px solid;
+		transition: all 0.3s ease;
+	}
+	
+	.delivery-modal-footer button.secondary {
+		background-color: white;
+		color: #666;
+		border-color: #d1d1d1;
+	}
+	
+	.delivery-modal-footer button.secondary:hover {
+		background-color: #f5f5f5;
+		border-color: #999;
+	}
+	
+	.delivery-modal-footer button.primary {
+		background-color: #002C5A;
+		color: white;
+		border-color: #002C5A;
+	}
+	
+	.delivery-modal-footer button.primary:hover {
+		background-color: #DB804A;
+		border-color: #DB804A;
+	}
+	
+	@media (max-width: 600px) {
+		.delivery-modal-content {
+			width: 95%;
+		}
+		
+		.delivery-modal-footer {
+			flex-direction: column;
+		}
+		
+		.delivery-modal-footer button {
+			width: 100%;
+		}
+	}
 
 </style>
 
@@ -359,22 +491,7 @@ if ($hasAllAttributes) {
 	<?php if ($product->getIsSalable() || (int)$product->getBackorders() > 0): ?>
 	<div class="delivery-info" style="margin-top: 15px; text-align: center;">
 		<p style="margin-bottom: 5px;">
-			<?php 
-			// Get lead times attribute
-			$leadTimes = '';
-			try {
-				$leadTimes = $product->getAttributeText('lead_times');
-				if (empty($leadTimes)) {
-					$leadTimes = $product->getData('lead_times');
-				}
-			} catch (\Exception $e) {
-				// If there's an error, try getData
-				$leadTimes = $product->getData('lead_times');
-			}
-			
-			// Display lead times without fallback
-			echo $block->escapeHtml($leadTimes);
-			?>
+			<?= $block->escapeHtml($leadTimes) ?>
 		</p>
 		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery options and costs confirmed at checkout') ?></p>
 	</div>
@@ -388,9 +505,34 @@ if ($hasAllAttributes) {
 		<a href="javascript:void(0);" 
 		   class="action primary" 
 		   id="calculator-add-to-cart"
+		   data-lead-times="<?= $block->escapeHtmlAttr($leadTimes) ?>"
 		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
 			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($effectivePricePerBox, 2)) ?></span>
 		</a>
+	</div>
+	
+	<!-- Delivery Confirmation Modal -->
+	<div id="delivery-confirmation-modal" class="delivery-modal" style="display: none;">
+		<div class="delivery-modal-overlay"></div>
+		<div class="delivery-modal-content">
+			<div class="delivery-modal-header">
+				<h3><?= __('Stock &amp; Delivery Notice') ?></h3>
+			</div>
+			<div class="delivery-modal-body">
+				<p><?= __('We are expecting this product to arrive at our warehouse shortly.') ?></p>
+				<p class="delivery-time-text"><strong id="modal-lead-time"></strong></p>
+				<p><?= __('Once the product has arrived with us, we will deliver to you based on the Delivery Option you select at checkout.') ?></p>
+				<p><strong><?= __('Would you like to proceed with adding this to your shopping cart?') ?></strong></p>
+			</div>
+			<div class="delivery-modal-footer">
+				<button type="button" class="action secondary" id="modal-cancel">
+					<span><?= __('Cancel') ?></span>
+				</button>
+				<button type="button" class="action primary" id="modal-confirm">
+					<span><?= __('Yes, Add Tiles to Cart') ?></span>
+				</button>
+			</div>
+		</div>
 	</div>
 
 	<div class="payment-options" style="display: grid; padding: 5px 0; justify-content: center; gap: 10px;">
@@ -430,6 +572,9 @@ require(['jquery'], function($) {
 		var pricePerM2 = <?= /* @noEscape */ $effectivePricePerM2 ?>;
 		var pricePerBox = <?= /* @noEscape */ $effectivePricePerBox ?>;
 		
+		// Get lead times for modal check
+		var leadTimes = $('#calculator-add-to-cart').data('lead-times') || '';
+		
 		// Elements
 		var $m2Input = $('#calculator-m2');
 		var $boxesInput = $('#calculator-boxes');
@@ -438,6 +583,10 @@ require(['jquery'], function($) {
 		var $updateQuantityText = $('#update-quantity-text');
 		var $addToCartButton = $('#calculator-add-to-cart');
 		var $klarnaWidget = $('#klarna-widget');
+		var $modal = $('#delivery-confirmation-modal');
+		var $modalLeadTime = $('#modal-lead-time');
+		var $modalConfirm = $('#modal-confirm');
+		var $modalCancel = $('#modal-cancel');
 		
 		// Native form elements
 		var $qtyInput = $('#qty');
@@ -607,6 +756,42 @@ require(['jquery'], function($) {
 			$nativeAddToCartButton.prop('disabled', false);
 		}
 		
+		// Modal Functions
+		function showDeliveryModal() {
+			$modalLeadTime.text(leadTimes);
+			$modal.fadeIn(300);
+			$('body').css('overflow', 'hidden');
+		}
+		
+		function hideDeliveryModal() {
+			$modal.fadeOut(300);
+			$('body').css('overflow', '');
+		}
+		
+		function shouldShowDeliveryModal() {
+			// Check if lead times contains "Next Working Day" or is empty
+			if (!leadTimes || leadTimes.trim() === '') {
+				return false;
+			}
+			
+			// Case-insensitive check for variations of next day delivery
+			var nextDayVariations = [
+				'Available for Delivery from Next Working Day',
+				'Next Working Day',
+				'Next Day',
+				'Available Next Day'
+			];
+			
+			var leadTimesLower = leadTimes.toLowerCase();
+			for (var i = 0; i < nextDayVariations.length; i++) {
+				if (leadTimesLower.indexOf(nextDayVariations[i].toLowerCase()) !== -1) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
 		// Cart Function
 		function addToCart() {
 			var boxes = parseBoxesInput();
@@ -659,10 +844,39 @@ require(['jquery'], function($) {
 			}
 		});
 		
-		// Add to Cart Button Handler
+		// Add to Cart Button Handler with Modal Check
 		$addToCartButton.on('click', function(e) {
 			e.preventDefault();
+			
+			// Check if we need to show the delivery modal
+			if (shouldShowDeliveryModal()) {
+				showDeliveryModal();
+			} else {
+				// Proceed directly to cart
+				addToCart();
+			}
+		});
+		
+		// Modal Button Handlers
+		$modalConfirm.on('click', function() {
+			hideDeliveryModal();
 			addToCart();
+		});
+		
+		$modalCancel.on('click', function() {
+			hideDeliveryModal();
+		});
+		
+		// Close modal when clicking overlay
+		$('.delivery-modal-overlay').on('click', function() {
+			hideDeliveryModal();
+		});
+		
+		// Close modal with Escape key
+		$(document).on('keydown', function(e) {
+			if (e.key === 'Escape' && $modal.is(':visible')) {
+				hideDeliveryModal();
+			}
 		});
 		
 		// Input Event Handlers
