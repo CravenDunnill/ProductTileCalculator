@@ -370,7 +370,7 @@ if ($hasAllAttributes) {
 			data-pp-style-layout="text"
 			data-pp-style-logo-type="inline"
 			data-pp-style-text-color="black"
-			data-pp-amount="<?= (int)($effectivePricePerBox) ?>">
+			data-pp-amount="<?= number_format($effectivePricePerBox, 2, '.', '') ?>">
 		</div>
 	</div>
 	
@@ -405,8 +405,6 @@ require(['jquery'], function($) {
 	'use strict';
 	
 	$(document).ready(function() {
-		console.log('Tile calculator script loaded');
-		
 		// Configuration values
 		var boxQuantity = <?= /* @noEscape */ $boxQuantity ?>;
 		var tilePerM2 = <?= /* @noEscape */ $tilePerM2 ?>;
@@ -464,8 +462,11 @@ require(['jquery'], function($) {
 		
 		// Update Klarna widget with new purchase amount
 		function updateKlarnaWidget(totalPrice) {
-			// Convert price to pence/cents (multiply by 100 and remove decimals)
-			var purchaseAmount = Math.round(totalPrice * 100);
+			// Round to 2 decimal places first to ensure consistency
+			var roundedPrice = Math.round(totalPrice * 100) / 100;
+			
+			// Convert price to pence/cents (multiply by 100)
+			var purchaseAmount = Math.round(roundedPrice * 100);
 			
 			// Update the data attribute
 			$klarnaWidget.attr('data-purchase-amount', purchaseAmount);
@@ -475,11 +476,45 @@ require(['jquery'], function($) {
 				try {
 					window.Klarna.OnsiteMessaging.refresh();
 				} catch (e) {
-					console.log('Klarna refresh not available:', e);
+					// Klarna refresh not available
 				}
 			}
+		}
+		
+		// Update PayPal Pay Later widget with new purchase amount
+		function updatePayPalWidget(totalPrice) {
+			var $paypalWidget = $('.paypal-paylater');
 			
-			console.log('Updated Klarna widget purchase amount to:', purchaseAmount, '(£' + totalPrice.toFixed(2) + ')');
+			// Round to 2 decimal places first to ensure consistency with Klarna
+			var roundedPrice = Math.round(totalPrice * 100) / 100;
+			
+			// Format price to 2 decimal places as a string
+			var formattedPrice = roundedPrice.toFixed(2);
+			
+			// Update the data attribute (PayPal expects the amount as a decimal string)
+			$paypalWidget.attr('data-pp-amount', formattedPrice);
+			
+			// Try to refresh the PayPal widget if the API is available
+			if (window.paypal && window.paypal.Messages) {
+				try {
+					// Re-render the PayPal message with the new amount
+					window.paypal.Messages({
+						amount: parseFloat(formattedPrice),
+						placement: 'payment',
+						style: {
+							layout: 'text',
+							logo: {
+								type: 'inline'
+							},
+							text: {
+								color: 'black'
+							}
+						}
+					}).render('.paypal-paylater');
+				} catch (e) {
+					// PayPal refresh not available
+				}
+			}
 		}
 		
 		function updateFromM2() {
@@ -538,8 +573,9 @@ require(['jquery'], function($) {
 			var buttonBoxText = (boxes === 1) ? 'Box' : 'Boxes';
 			$updateQuantityText.html('Add ' + boxes + ' ' + buttonBoxText + ' &mdash; &pound;' + totalPrice.toFixed(2));
 			
-			// Update Klarna widget
+			// Update both payment widgets
 			updateKlarnaWidget(totalPrice);
+			updatePayPalWidget(totalPrice);
 			
 			// Update native form quantity and enable button
 			updateNativeForm(totalTiles);
@@ -656,8 +692,9 @@ require(['jquery'], function($) {
 			// Update button text with effective price
 			$updateQuantityText.html('Add 1 Box &mdash; &pound;' + pricePerBox.toFixed(2));
 			
-			// Initialize Klarna widget
+			// Initialize both payment widgets
 			updateKlarnaWidget(pricePerBox);
+			updatePayPalWidget(pricePerBox);
 			
 			// Initialize the native form
 			updateNativeForm(initialTotalTiles);
@@ -665,8 +702,6 @@ require(['jquery'], function($) {
 		
 		// Initialize
 		initializeCalculator();
-		
-		console.log('Tile calculator initialized with boxQuantity:', boxQuantity);
 	});
 });
 </script>
