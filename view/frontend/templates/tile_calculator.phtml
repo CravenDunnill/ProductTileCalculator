@@ -347,32 +347,13 @@ if ($hasAllAttributes) {
 		<strong><span id="total-tiles">10</span> tiles</strong> in your order
 	</p>
 	
-	<div class="actions">
-		<a href="javascript:void(0);" 
-		   class="action primary" 
-		   id="calculator-add-to-cart"
-		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
-			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($effectivePricePerBox, 2)) ?></span>
-		</a>
-	</div>
-
-	<div class="payment-options" style="display: grid; padding: 5px 0;">
-		<klarna-placement
-		  id="klarna-widget"
-		  data-key="credit-promotion-auto-size"
-		  data-locale="en-GB"
-			data-purchase-amount="<?= (int)($effectivePricePerBox * 100) ?>"
-		></klarna-placement>
-
-		<div
-			class="paypal-paylater"
-			data-pp-message
-			data-pp-style-layout="text"
-			data-pp-style-logo-type="inline"
-			data-pp-style-text-color="black"
-			data-pp-amount="<?= number_format($effectivePricePerBox, 2, '.', '') ?>">
-		</div>
-	</div>
+	
+	
+	
+	
+	
+	<!-- Divider line -->
+	<div class="tile-calculator-divider"></div>
 	
 	<!-- Delivery information - only show when in stock or backorders allowed -->
 	<?php if ($product->getIsSalable() || (int)$product->getBackorders() > 0): ?>
@@ -395,9 +376,45 @@ if ($hasAllAttributes) {
 			echo $block->escapeHtml($leadTimes);
 			?>
 		</p>
-		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery date and costs confirmed at checkout') ?></p>
+		<p style="font-size: 12px; color: #666; margin-top: 0;"><?= __('Delivery options and costs confirmed at checkout') ?></p>
 	</div>
 	<?php endif; ?>
+	
+	
+	
+	
+	
+	<div class="actions">
+		<a href="javascript:void(0);" 
+		   class="action primary" 
+		   id="calculator-add-to-cart"
+		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
+			<span id="update-quantity-text"><?= __('Add 1 Box &mdash; &pound;%1', number_format($effectivePricePerBox, 2)) ?></span>
+		</a>
+	</div>
+
+	<div class="payment-options" style="display: grid; padding: 5px 0; justify-content: center; gap: 10px;">
+		<?php 
+		// Round to 2 decimal places first to ensure both widgets use the exact same price
+		$roundedPrice = round($effectivePricePerBox, 2);
+		?>
+		<klarna-placement
+		  id="klarna-widget"
+		  data-key="credit-promotion-auto-size"
+		  data-locale="en-GB"
+			data-purchase-amount="<?= (int)($roundedPrice * 100) ?>"
+		></klarna-placement>
+
+		<div
+			class="paypal-paylater"
+			data-pp-message
+			data-pp-style-layout="text"
+			data-pp-style-logo-type="inline"
+			data-pp-style-text-color="black"
+			data-pp-amount="<?= number_format($roundedPrice, 2, '.', '') ?>">
+		</div>
+	</div>
+	
 </div>
 
 <script>
