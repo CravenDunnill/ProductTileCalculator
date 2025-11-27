@@ -206,17 +206,17 @@ class Calculator extends AbstractHelper
 				return 0;
 			}
 		}
-		
+
 		if (!$product instanceof Product) {
 			return 0;
 		}
-		
+
 		$boxQuantity = $this->getBoxQuantity($product);
+		// Magento price is VAT inclusive
 		$pricePerTile = (float)$product->getPrice();
-		
-		// Calculate box price and apply VAT
-		$exVatPrice = $pricePerTile * $boxQuantity;
-		return $exVatPrice * self::VAT_MULTIPLIER;
+
+		// Calculate box price (price already includes VAT)
+		return $pricePerTile * $boxQuantity;
 	}
 	
 	/**
@@ -263,22 +263,21 @@ class Calculator extends AbstractHelper
 				return null;
 			}
 		}
-		
+
 		if (!$product instanceof Product) {
 			return null;
 		}
-		
-		// Check if product has a special price
+
+		// Check if product has a special price (Magento special_price is VAT inclusive)
 		$specialPrice = $product->getSpecialPrice();
 		if ($specialPrice === null || $specialPrice <= 0) {
 			return null;
 		}
-		
+
 		$boxQuantity = $this->getBoxQuantity($product);
-		
-		// Calculate special box price and apply VAT
-		$exVatPrice = (float)$specialPrice * $boxQuantity;
-		return $exVatPrice * self::VAT_MULTIPLIER;
+
+		// Calculate special box price (price already includes VAT)
+		return (float)$specialPrice * $boxQuantity;
 	}
 	
 	/**
