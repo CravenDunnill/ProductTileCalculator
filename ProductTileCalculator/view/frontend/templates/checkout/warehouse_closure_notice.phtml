@@ -1,0 +1,177 @@
+<?php
+/**
+ * CravenDunnill ProductTileCalculator Extension
+ *
+ * Warehouse Closure Notice for Checkout Page
+ *
+ * @var $block \CravenDunnill\ProductTileCalculator\Block\WarehouseClosureNotice
+ */
+
+if (!$block->isEnabled() || !$block->getMessage()) {
+    return;
+}
+?>
+
+<style>
+    .checkout-warehouse-closure-notice {
+        padding: 12px 15px;
+        border-radius: 6px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        font-weight: 200;
+    }
+
+    .checkout-warehouse-closure-notice::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+        );
+        animation: checkout-warehouse-shimmer 3s infinite;
+    }
+
+    @keyframes checkout-warehouse-shimmer {
+        0% {
+            left: -100%;
+        }
+        50%, 100% {
+            left: 100%;
+        }
+    }
+
+    .checkout-warehouse-closure-notice .notice-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .checkout-warehouse-closure-notice a {
+        color: inherit;
+        text-decoration: underline;
+    }
+
+    .checkout-warehouse-closure-notice a:hover {
+        text-decoration: none;
+    }
+</style>
+
+<div id="checkout-warehouse-closure-notice"
+     class="checkout-warehouse-closure-notice"
+     style="display: none;"
+     data-config="<?= $block->escapeHtmlAttr($block->getConfigJson()) ?>">
+    <div class="notice-content"></div>
+</div>
+
+<script>
+require(['jquery', 'domReady!'], function($) {
+    'use strict';
+
+    var $notice = $('#checkout-warehouse-closure-notice');
+    var config = $notice.data('config');
+    var noticeInserted = false;
+
+    function isWithinSchedule(config) {
+        var now = new Date();
+
+        if (config.startDatetime) {
+            var startDate = new Date(config.startDatetime);
+            if (now < startDate) {
+                return false;
+            }
+        }
+
+        if (config.endDatetime) {
+            var endDate = new Date(config.endDatetime);
+            if (now > endDate) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function insertNoticeInCheckout() {
+        if (noticeInserted) {
+            return;
+        }
+
+        // Try to find the shipping method form and the continue button
+        var $shippingMethodForm = $('#co-shipping-method-form');
+        var $continueButton = $shippingMethodForm.find('.action.continue');
+
+        if ($shippingMethodForm.length && $continueButton.length) {
+            // Insert notice before the continue button's parent actions-toolbar
+            var $actionsToolbar = $continueButton.closest('.actions-toolbar');
+            if ($actionsToolbar.length) {
+                $notice.detach().insertBefore($actionsToolbar);
+                noticeInserted = true;
+            }
+        }
+    }
+
+    function updateNoticeVisibility() {
+        if (!config || !config.enabled || !config.messageHtml) {
+            $notice.hide();
+            return;
+        }
+
+        if (isWithinSchedule(config)) {
+            $notice.css({
+                'background-color': config.backgroundColor,
+                'color': config.textColor
+            });
+
+            $notice.find('.notice-content').html(config.messageHtml);
+            $notice.show();
+            insertNoticeInCheckout();
+        } else {
+            $notice.hide();
+        }
+    }
+
+    // Initial update
+    updateNoticeVisibility();
+
+    // Watch for checkout DOM changes (shipping methods load asynchronously)
+    var checkoutObserver = new MutationObserver(function(mutations) {
+        if (!noticeInserted && config && config.enabled) {
+            insertNoticeInCheckout();
+        }
+    });
+
+    // Observe the checkout content for changes
+    var checkoutContent = document.getElementById('checkout');
+    if (checkoutContent) {
+        checkoutObserver.observe(checkoutContent, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Also check periodically for the first few seconds
+    var attempts = 0;
+    var maxAttempts = 20;
+    var checkInterval = setInterval(function() {
+        attempts++;
+        if (noticeInserted || attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+        } else {
+            insertNoticeInCheckout();
+        }
+    }, 500);
+
+    // Check visibility every minute for scheduled start/end
+    if (config && config.enabled && (config.startDatetime || config.endDatetime)) {
+        setInterval(updateNoticeVisibility, 60000);
+    }
+});
+</script>

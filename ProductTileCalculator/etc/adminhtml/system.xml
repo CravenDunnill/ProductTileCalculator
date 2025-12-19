@@ -14,7 +14,7 @@
                     <label>Enable Notice</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
-                    <comment>Enable or disable the warehouse closure notice on tile product pages.</comment>
+                    <comment><![CDATA[Displays on: Tile product pages (above Add to Cart), Shopping Cart (above Proceed to Checkout), and Checkout (below Delivery Options).]]></comment>
                 </field>
                 <field id="message_text" translate="label comment" type="editor" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Message Content</label>
