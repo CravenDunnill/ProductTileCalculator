@@ -15,10 +15,10 @@ A clear and concise description of what the bug is.
 3. Enter '...'
 4. See error
 
-## Expected Behavior
+## Expected Behaviour
 What you expected to happen.
 
-## Actual Behavior
+## Actual Behaviour
 What actually happened.
 
 ## Screenshots

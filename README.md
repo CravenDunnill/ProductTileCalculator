@@ -167,7 +167,7 @@ The calculator uses event-driven architecture:
 - `click` events on increment/decrement buttons
 - Custom events for payment widget updates
 
-## Customization
+## Customisation
 
 ### Styling
 
@@ -216,21 +216,3 @@ Run the data patch manually:
 bin/magento setup:upgrade
 ```
 
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-
-This module is licensed under:
-- [Open Software License 3.0 (OSL-3.0)](https://opensource.org/licenses/OSL-3.0)
-- [Academic Free License 3.0 (AFL-3.0)](https://opensource.org/licenses/AFL-3.0)
-
-## Support
-
-- **Issues**: [GitHub Issues](../../issues)
-- **Pull Requests**: [GitHub Pull Requests](../../pulls)
-
-## Credits
-
-Developed by [Craven Dunnill](https://www.cravendunnill.co.uk/) for their tile e-commerce platform.
