@@ -13,11 +13,13 @@
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Notice</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
                     <comment>Enable or disable the warehouse closure notice on tile product pages.</comment>
                 </field>
                 <field id="message_text" translate="label comment" type="editor" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Message Content</label>
                     <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\Editor</frontend_model>
+                    <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
                     <comment>Enter the notice message. Use the editor toolbar for bold, links, etc.</comment>
                     <depends>
                         <field id="enabled">1</field>
@@ -26,6 +28,7 @@
                 <field id="background_color" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Background Colour</label>
                     <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\ColorPicker</frontend_model>
+                    <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
                     <comment>Select the background colour for the notice box.</comment>
                     <depends>
                         <field id="enabled">1</field>
@@ -34,6 +37,7 @@
                 <field id="text_color" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Text Colour</label>
                     <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\ColorPicker</frontend_model>
+                    <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
                     <comment>Select the text colour for the notice.</comment>
                     <depends>
                         <field id="enabled">1</field>
@@ -42,6 +46,7 @@
                 <field id="start_datetime" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Start Date/Time (Optional)</label>
                     <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\DateTime</frontend_model>
+                    <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
                     <comment>Optional. Notice will show from this date/time. Leave empty to show immediately when enabled.</comment>
                     <depends>
                         <field id="enabled">1</field>
@@ -50,6 +55,7 @@
                 <field id="end_datetime" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>End Date/Time (Optional)</label>
                     <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\DateTime</frontend_model>
+                    <backend_model>CravenDunnill\ProductTileCalculator\Model\Config\Backend\CacheClear</backend_model>
                     <comment>Optional. Notice will hide after this date/time. Leave empty for no end date.</comment>
                     <depends>
                         <field id="enabled">1</field>
