@@ -344,6 +344,7 @@ if ($hasAllAttributes) {
 	.warehouse-closure-notice {
 		padding: 12px 15px;
 		border-radius: 6px;
+		margin-top: 15px;
 		margin-bottom: 15px;
 		text-align: center;
 		position: relative;
@@ -994,29 +995,6 @@ require(['jquery'], function($) {
 		var $warehouseNotice = $('#warehouse-closure-notice');
 		var warehouseConfig = $warehouseNotice.data('config');
 
-		function escapeHtml(text) {
-			var div = document.createElement('div');
-			div.appendChild(document.createTextNode(text));
-			return div.innerHTML;
-		}
-
-		function buildNoticeContent(config) {
-			var content = escapeHtml(config.message);
-
-			// Apply bold if enabled
-			if (config.bold) {
-				content = '<strong>' + content + '</strong>';
-			}
-
-			// Add link if URL is provided
-			if (config.linkUrl) {
-				var linkText = config.linkText ? escapeHtml(config.linkText) : 'More info';
-				content += ' <a href="' + escapeHtml(config.linkUrl) + '" target="_blank" style="color: inherit;">' + linkText + '</a>';
-			}
-
-			return content;
-		}
-
 		function isWithinSchedule(config) {
 			var now = new Date();
 
@@ -1040,7 +1018,7 @@ require(['jquery'], function($) {
 		}
 
 		function updateWarehouseNoticeVisibility() {
-			if (!warehouseConfig || !warehouseConfig.enabled || !warehouseConfig.message) {
+			if (!warehouseConfig || !warehouseConfig.enabled || !warehouseConfig.messageHtml) {
 				$warehouseNotice.hide();
 				return;
 			}
@@ -1052,9 +1030,8 @@ require(['jquery'], function($) {
 					'color': warehouseConfig.textColor
 				});
 
-				// Build and set content
-				var content = buildNoticeContent(warehouseConfig);
-				$warehouseNotice.find('.notice-content').html(content);
+				// Set HTML content from WYSIWYG editor
+				$warehouseNotice.find('.notice-content').html(warehouseConfig.messageHtml);
 
 				$warehouseNotice.show();
 			} else {

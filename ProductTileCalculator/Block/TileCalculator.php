@@ -437,7 +437,7 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	}
 
 	/**
-	 * Get warehouse closure message text
+	 * Get warehouse closure message HTML content
 	 *
 	 * @return string
 	 */
@@ -445,45 +445,6 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	{
 		return (string)$this->scopeConfig->getValue(
 			self::CONFIG_PATH_PREFIX . 'message_text',
-			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
-		);
-	}
-
-	/**
-	 * Check if message should be bold
-	 *
-	 * @return bool
-	 */
-	public function isWarehouseClosureMessageBold(): bool
-	{
-		return (bool)$this->scopeConfig->getValue(
-			self::CONFIG_PATH_PREFIX . 'message_bold',
-			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
-		);
-	}
-
-	/**
-	 * Get warehouse closure link URL
-	 *
-	 * @return string
-	 */
-	public function getWarehouseClosureLinkUrl(): string
-	{
-		return (string)$this->scopeConfig->getValue(
-			self::CONFIG_PATH_PREFIX . 'link_url',
-			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
-		);
-	}
-
-	/**
-	 * Get warehouse closure link text
-	 *
-	 * @return string
-	 */
-	public function getWarehouseClosureLinkText(): string
-	{
-		return (string)$this->scopeConfig->getValue(
-			self::CONFIG_PATH_PREFIX . 'link_text',
 			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
 		);
 	}
@@ -551,10 +512,7 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	{
 		$config = [
 			'enabled' => $this->isWarehouseClosureEnabled(),
-			'message' => $this->getWarehouseClosureMessage(),
-			'bold' => $this->isWarehouseClosureMessageBold(),
-			'linkUrl' => $this->getWarehouseClosureLinkUrl(),
-			'linkText' => $this->getWarehouseClosureLinkText(),
+			'messageHtml' => $this->getWarehouseClosureMessage(),
 			'backgroundColor' => $this->getWarehouseClosureBackgroundColor(),
 			'textColor' => $this->getWarehouseClosureTextColor(),
 			'startDatetime' => $this->getWarehouseClosureStartDatetime(),
