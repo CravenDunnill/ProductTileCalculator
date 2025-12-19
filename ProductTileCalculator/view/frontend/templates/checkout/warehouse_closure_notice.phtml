@@ -104,17 +104,14 @@ require(['jquery', 'domReady!'], function($) {
             return;
         }
 
-        // Try to find the shipping method form and the continue button
+        // Try to find the "Delivery Options" heading (step title)
         var $shippingMethodForm = $('#co-shipping-method-form');
-        var $continueButton = $shippingMethodForm.find('.action.continue');
+        var $stepTitle = $shippingMethodForm.find('.step-title');
 
-        if ($shippingMethodForm.length && $continueButton.length) {
-            // Insert notice before the continue button's parent actions-toolbar
-            var $actionsToolbar = $continueButton.closest('.actions-toolbar');
-            if ($actionsToolbar.length) {
-                $notice.detach().insertBefore($actionsToolbar);
-                noticeInserted = true;
-            }
+        if ($shippingMethodForm.length && $stepTitle.length) {
+            // Insert notice directly after the "Delivery Options" heading
+            $notice.detach().insertAfter($stepTitle);
+            noticeInserted = true;
         }
     }
 
