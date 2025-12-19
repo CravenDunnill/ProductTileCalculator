@@ -10,6 +10,7 @@ namespace CravenDunnill\ProductTileCalculator\Model\Config\Backend;
 
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Cache\Frontend\Pool as CacheFrontendPool;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\Context;
@@ -24,10 +25,16 @@ class CacheClear extends Value
     protected $cacheTypeList;
 
     /**
+     * @var CacheFrontendPool
+     */
+    protected $cacheFrontendPool;
+
+    /**
      * @param Context $context
      * @param Registry $registry
      * @param ScopeConfigInterface $config
      * @param TypeListInterface $cacheTypeList
+     * @param CacheFrontendPool $cacheFrontendPool
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -37,11 +44,13 @@ class CacheClear extends Value
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
+        CacheFrontendPool $cacheFrontendPool,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->cacheTypeList = $cacheTypeList;
+        $this->cacheFrontendPool = $cacheFrontendPool;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
@@ -53,9 +62,17 @@ class CacheClear extends Value
     public function afterSave()
     {
         if ($this->isValueChanged()) {
-            // Clear full page cache and block HTML cache
-            $this->cacheTypeList->cleanType('full_page');
-            $this->cacheTypeList->cleanType('block_html');
+            // Clean (flush) the cache types
+            $cacheTypes = ['config', 'full_page', 'block_html'];
+
+            foreach ($cacheTypes as $type) {
+                $this->cacheTypeList->cleanType($type);
+            }
+
+            // Flush all cache storage
+            foreach ($this->cacheFrontendPool as $cacheFrontend) {
+                $cacheFrontend->getBackend()->clean();
+            }
         }
 
         return parent::afterSave();
