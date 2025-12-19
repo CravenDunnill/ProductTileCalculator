@@ -15,30 +15,10 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Enable or disable the warehouse closure notice on tile product pages.</comment>
                 </field>
-                <field id="message_text" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Message Text</label>
-                    <comment>Enter the notice message to display. HTML is not allowed for security.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-                <field id="message_bold" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Bold Text</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-                <field id="link_url" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Link URL (Optional)</label>
-                    <comment>Optional URL to link the message to. Leave empty for no link.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-                <field id="link_text" translate="label comment" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Link Text (Optional)</label>
-                    <comment>Text for the link. If empty, the full message becomes the link.</comment>
+                <field id="message_text" translate="label comment" type="editor" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Message Content</label>
+                    <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\Editor</frontend_model>
+                    <comment>Enter the notice message. Use the editor toolbar for bold, links, etc.</comment>
                     <depends>
                         <field id="enabled">1</field>
                     </depends>

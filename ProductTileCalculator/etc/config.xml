@@ -5,9 +5,6 @@
             <general>
                 <enabled>0</enabled>
                 <message_text></message_text>
-                <message_bold>0</message_bold>
-                <link_url></link_url>
-                <link_text></link_text>
                 <background_color>#ffcc00</background_color>
                 <text_color>#000000</text_color>
                 <start_datetime></start_datetime>
