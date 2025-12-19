@@ -102,7 +102,7 @@ require(['jquery', 'domReady!'], function($) {
 
     function insertNoticeInCheckout() {
         if (noticeInserted) {
-            return;
+            return true;
         }
 
         // Find the shipping method form and insert before the Next button
@@ -115,8 +115,10 @@ require(['jquery', 'domReady!'], function($) {
             if ($actionsToolbar.length) {
                 $notice.detach().insertBefore($actionsToolbar);
                 noticeInserted = true;
+                return true;
             }
         }
+        return false;
     }
 
     function updateNoticeVisibility() {
@@ -126,26 +128,27 @@ require(['jquery', 'domReady!'], function($) {
         }
 
         if (isWithinSchedule(config)) {
-            $notice.css({
-                'background-color': config.backgroundColor,
-                'color': config.textColor
-            });
-
-            $notice.find('.notice-content').html(config.messageHtml);
-            $notice.show();
-            insertNoticeInCheckout();
+            // Only show after successfully inserted into checkout
+            if (insertNoticeInCheckout()) {
+                $notice.css({
+                    'background-color': config.backgroundColor,
+                    'color': config.textColor
+                });
+                $notice.find('.notice-content').html(config.messageHtml);
+                $notice.show();
+            }
         } else {
             $notice.hide();
         }
     }
 
-    // Initial update
+    // Initial update (won't show until checkout form loads)
     updateNoticeVisibility();
 
     // Watch for checkout DOM changes (shipping methods load asynchronously)
     var checkoutObserver = new MutationObserver(function(mutations) {
         if (!noticeInserted && config && config.enabled) {
-            insertNoticeInCheckout();
+            updateNoticeVisibility();
         }
     });
 
@@ -166,7 +169,7 @@ require(['jquery', 'domReady!'], function($) {
         if (noticeInserted || attempts >= maxAttempts) {
             clearInterval(checkInterval);
         } else {
-            insertNoticeInCheckout();
+            updateNoticeVisibility();
         }
     }, 500);
 
