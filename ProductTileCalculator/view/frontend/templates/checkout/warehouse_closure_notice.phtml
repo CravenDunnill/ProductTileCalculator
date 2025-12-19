@@ -105,21 +105,15 @@ require(['jquery', 'domReady!'], function($) {
             return;
         }
 
-        // Try multiple selectors to find the "Delivery Options" heading
+        // Find the shipping method form and insert before the Next button
         var $shippingMethodForm = $('#co-shipping-method-form');
 
         if ($shippingMethodForm.length) {
-            // Try legend first (common in Magento checkout)
-            var $heading = $shippingMethodForm.find('legend.legend');
-            if (!$heading.length) {
-                $heading = $shippingMethodForm.find('.step-title');
-            }
-            if (!$heading.length) {
-                $heading = $shippingMethodForm.find('legend');
-            }
+            // Find the actions toolbar containing the Next button
+            var $actionsToolbar = $shippingMethodForm.find('.actions-toolbar');
 
-            if ($heading.length) {
-                $notice.detach().insertAfter($heading);
+            if ($actionsToolbar.length) {
+                $notice.detach().insertBefore($actionsToolbar);
                 noticeInserted = true;
             }
         }
