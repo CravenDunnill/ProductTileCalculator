@@ -330,14 +330,62 @@ if ($hasAllAttributes) {
 		.delivery-modal-content {
 			width: 95%;
 		}
-		
+
 		.delivery-modal-footer {
 			flex-direction: column-reverse;
 		}
-		
+
 		.delivery-modal-footer button {
 			width: 100%;
 		}
+	}
+
+	/* Warehouse Closure Notice Styles */
+	.warehouse-closure-notice {
+		padding: 12px 15px;
+		border-radius: 6px;
+		margin-bottom: 15px;
+		text-align: center;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.warehouse-closure-notice::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(255, 255, 255, 0.3),
+			transparent
+		);
+		animation: warehouse-shimmer 3s infinite;
+	}
+
+	@keyframes warehouse-shimmer {
+		0% {
+			left: -100%;
+		}
+		50%, 100% {
+			left: 100%;
+		}
+	}
+
+	.warehouse-closure-notice .notice-content {
+		position: relative;
+		z-index: 1;
+	}
+
+	.warehouse-closure-notice a {
+		text-decoration: underline;
+	}
+
+	.warehouse-closure-notice a:hover {
+		text-decoration: none;
 	}
 
 </style>
@@ -501,9 +549,17 @@ if ($hasAllAttributes) {
 	
 	
 	
+	<!-- Warehouse Closure Notice -->
+	<div id="warehouse-closure-notice"
+		 class="warehouse-closure-notice"
+		 style="display: none;"
+		 data-config="<?= $block->escapeHtmlAttr($block->getWarehouseClosureConfigJson()) ?>">
+		<div class="notice-content"></div>
+	</div>
+
 	<div class="actions">
-		<a href="javascript:void(0);" 
-		   class="action primary" 
+		<a href="javascript:void(0);"
+		   class="action primary"
 		   id="calculator-add-to-cart"
 		   data-lead-times="<?= $block->escapeHtmlAttr($leadTimes) ?>"
 		   title="<?= $block->escapeHtml(__('Add to Cart')) ?>">
@@ -933,6 +989,86 @@ require(['jquery'], function($) {
 		
 		// Initialize
 		initializeCalculator();
+
+		// Warehouse Closure Notice Functions
+		var $warehouseNotice = $('#warehouse-closure-notice');
+		var warehouseConfig = $warehouseNotice.data('config');
+
+		function escapeHtml(text) {
+			var div = document.createElement('div');
+			div.appendChild(document.createTextNode(text));
+			return div.innerHTML;
+		}
+
+		function buildNoticeContent(config) {
+			var content = escapeHtml(config.message);
+
+			// Apply bold if enabled
+			if (config.bold) {
+				content = '<strong>' + content + '</strong>';
+			}
+
+			// Add link if URL is provided
+			if (config.linkUrl) {
+				var linkText = config.linkText ? escapeHtml(config.linkText) : 'More info';
+				content += ' <a href="' + escapeHtml(config.linkUrl) + '" target="_blank" style="color: inherit;">' + linkText + '</a>';
+			}
+
+			return content;
+		}
+
+		function isWithinSchedule(config) {
+			var now = new Date();
+
+			// Check start datetime
+			if (config.startDatetime) {
+				var startDate = new Date(config.startDatetime);
+				if (now < startDate) {
+					return false;
+				}
+			}
+
+			// Check end datetime
+			if (config.endDatetime) {
+				var endDate = new Date(config.endDatetime);
+				if (now > endDate) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		function updateWarehouseNoticeVisibility() {
+			if (!warehouseConfig || !warehouseConfig.enabled || !warehouseConfig.message) {
+				$warehouseNotice.hide();
+				return;
+			}
+
+			if (isWithinSchedule(warehouseConfig)) {
+				// Apply styles
+				$warehouseNotice.css({
+					'background-color': warehouseConfig.backgroundColor,
+					'color': warehouseConfig.textColor
+				});
+
+				// Build and set content
+				var content = buildNoticeContent(warehouseConfig);
+				$warehouseNotice.find('.notice-content').html(content);
+
+				$warehouseNotice.show();
+			} else {
+				$warehouseNotice.hide();
+			}
+		}
+
+		// Initialize warehouse notice
+		updateWarehouseNoticeVisibility();
+
+		// Check visibility every minute for scheduled start/end
+		if (warehouseConfig && warehouseConfig.enabled && (warehouseConfig.startDatetime || warehouseConfig.endDatetime)) {
+			setInterval(updateWarehouseNoticeVisibility, 60000);
+		}
 	});
 });
 </script>

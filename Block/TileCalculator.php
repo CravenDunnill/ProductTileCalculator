@@ -16,6 +16,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\Product\Type;
 use CravenDunnill\ProductTileCalculator\Helper\Calculator;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 class TileCalculator extends \Magento\Catalog\Block\Product\View
 {
@@ -60,6 +61,16 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	protected $attributeSetRepository;
 
 	/**
+	 * @var ScopeConfigInterface
+	 */
+	protected $scopeConfig;
+
+	/**
+	 * Warehouse closure config path prefix
+	 */
+	const CONFIG_PATH_PREFIX = 'tiles_warehouse_closure/general/';
+
+	/**
 	 * Required attribute codes for the calculator
 	 *
 	 * @var array
@@ -87,6 +98,7 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	 * @param StoreManagerInterface $storeManager
 	 * @param Calculator $calculatorHelper
 	 * @param AttributeSetRepositoryInterface $attributeSetRepository
+	 * @param ScopeConfigInterface $scopeConfig
 	 * @param array $data
 	 */
 	public function __construct(
@@ -104,6 +116,7 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 		StoreManagerInterface $storeManager,
 		Calculator $calculatorHelper,
 		AttributeSetRepositoryInterface $attributeSetRepository,
+		ScopeConfigInterface $scopeConfig,
 		array $data = []
 	) {
 		$this->_registry = $context->getRegistry();
@@ -114,7 +127,8 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 		$this->_storeManager = $storeManager;
 		$this->calculatorHelper = $calculatorHelper;
 		$this->attributeSetRepository = $attributeSetRepository;
-		
+		$this->scopeConfig = $scopeConfig;
+
 		parent::__construct(
 			$context,
 			$urlEncoder,
@@ -407,5 +421,145 @@ class TileCalculator extends \Magento\Catalog\Block\Product\View
 	public function getBaseUrl()
 	{
 		return $this->_storeManager->getStore()->getBaseUrl();
+	}
+
+	/**
+	 * Check if warehouse closure notice is enabled
+	 *
+	 * @return bool
+	 */
+	public function isWarehouseClosureEnabled(): bool
+	{
+		return (bool)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'enabled',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Get warehouse closure message text
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureMessage(): string
+	{
+		return (string)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'message_text',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Check if message should be bold
+	 *
+	 * @return bool
+	 */
+	public function isWarehouseClosureMessageBold(): bool
+	{
+		return (bool)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'message_bold',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Get warehouse closure link URL
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureLinkUrl(): string
+	{
+		return (string)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'link_url',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Get warehouse closure link text
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureLinkText(): string
+	{
+		return (string)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'link_text',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Get warehouse closure background color
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureBackgroundColor(): string
+	{
+		$color = $this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'background_color',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+		return $color ?: '#ffcc00';
+	}
+
+	/**
+	 * Get warehouse closure text color
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureTextColor(): string
+	{
+		$color = $this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'text_color',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+		return $color ?: '#000000';
+	}
+
+	/**
+	 * Get warehouse closure start datetime
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureStartDatetime(): string
+	{
+		return (string)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'start_datetime',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Get warehouse closure end datetime
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureEndDatetime(): string
+	{
+		return (string)$this->scopeConfig->getValue(
+			self::CONFIG_PATH_PREFIX . 'end_datetime',
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORE
+		);
+	}
+
+	/**
+	 * Get all warehouse closure config as JSON for JavaScript
+	 *
+	 * @return string
+	 */
+	public function getWarehouseClosureConfigJson(): string
+	{
+		$config = [
+			'enabled' => $this->isWarehouseClosureEnabled(),
+			'message' => $this->getWarehouseClosureMessage(),
+			'bold' => $this->isWarehouseClosureMessageBold(),
+			'linkUrl' => $this->getWarehouseClosureLinkUrl(),
+			'linkText' => $this->getWarehouseClosureLinkText(),
+			'backgroundColor' => $this->getWarehouseClosureBackgroundColor(),
+			'textColor' => $this->getWarehouseClosureTextColor(),
+			'startDatetime' => $this->getWarehouseClosureStartDatetime(),
+			'endDatetime' => $this->getWarehouseClosureEndDatetime()
+		];
+		return json_encode($config);
 	}
 }
