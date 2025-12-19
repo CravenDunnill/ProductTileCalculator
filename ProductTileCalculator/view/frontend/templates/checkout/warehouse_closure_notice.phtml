@@ -22,6 +22,7 @@ if (!$block->isEnabled() || !$block->getMessage()) {
         position: relative;
         overflow: hidden;
         font-weight: 200;
+        font-size: 0.9em;
     }
 
     .checkout-warehouse-closure-notice::before {
@@ -104,14 +105,23 @@ require(['jquery', 'domReady!'], function($) {
             return;
         }
 
-        // Try to find the "Delivery Options" heading (step title)
+        // Try multiple selectors to find the "Delivery Options" heading
         var $shippingMethodForm = $('#co-shipping-method-form');
-        var $stepTitle = $shippingMethodForm.find('.step-title');
 
-        if ($shippingMethodForm.length && $stepTitle.length) {
-            // Insert notice directly after the "Delivery Options" heading
-            $notice.detach().insertAfter($stepTitle);
-            noticeInserted = true;
+        if ($shippingMethodForm.length) {
+            // Try legend first (common in Magento checkout)
+            var $heading = $shippingMethodForm.find('legend.legend');
+            if (!$heading.length) {
+                $heading = $shippingMethodForm.find('.step-title');
+            }
+            if (!$heading.length) {
+                $heading = $shippingMethodForm.find('legend');
+            }
+
+            if ($heading.length) {
+                $notice.detach().insertAfter($heading);
+                noticeInserted = true;
+            }
         }
     }
 

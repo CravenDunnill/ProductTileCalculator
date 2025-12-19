@@ -9,32 +9,27 @@ declare(strict_types=1);
 namespace CravenDunnill\ProductTileCalculator\Model\Config\Backend;
 
 use Magento\Framework\App\Config\Value;
-use Magento\Framework\App\Cache\TypeListInterface;
-use Magento\Framework\App\Cache\Frontend\Pool as CacheFrontendPool;
+use Magento\Framework\App\Cache\Manager as CacheManager;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
+use Magento\Framework\App\Cache\TypeListInterface;
 
 class CacheClear extends Value
 {
     /**
-     * @var TypeListInterface
+     * @var CacheManager
      */
-    protected $cacheTypeList;
-
-    /**
-     * @var CacheFrontendPool
-     */
-    protected $cacheFrontendPool;
+    protected $cacheManager;
 
     /**
      * @param Context $context
      * @param Registry $registry
      * @param ScopeConfigInterface $config
      * @param TypeListInterface $cacheTypeList
-     * @param CacheFrontendPool $cacheFrontendPool
+     * @param CacheManager $cacheManager
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -44,13 +39,12 @@ class CacheClear extends Value
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
-        CacheFrontendPool $cacheFrontendPool,
+        CacheManager $cacheManager,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->cacheTypeList = $cacheTypeList;
-        $this->cacheFrontendPool = $cacheFrontendPool;
+        $this->cacheManager = $cacheManager;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
@@ -62,17 +56,9 @@ class CacheClear extends Value
     public function afterSave()
     {
         if ($this->isValueChanged()) {
-            // Clean (flush) the cache types
+            // Flush and refresh cache types (same as admin Cache Management)
             $cacheTypes = ['config', 'full_page', 'block_html'];
-
-            foreach ($cacheTypes as $type) {
-                $this->cacheTypeList->cleanType($type);
-            }
-
-            // Flush all cache storage
-            foreach ($this->cacheFrontendPool as $cacheFrontend) {
-                $cacheFrontend->getBackend()->clean();
-            }
+            $this->cacheManager->flush($cacheTypes);
         }
 
         return parent::afterSave();
