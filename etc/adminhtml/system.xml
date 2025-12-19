@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="cravendunnill" translate="label" sortOrder="200">
+            <label>Craven Dunnill</label>
+        </tab>
+        <section id="tiles_warehouse_closure" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Tiles Warehouse Closure</label>
+            <tab>cravendunnill</tab>
+            <resource>CravenDunnill_ProductTileCalculator::config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Warehouse Closure Notice Settings</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Notice</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable or disable the warehouse closure notice on tile product pages.</comment>
+                </field>
+                <field id="message_text" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Message Text</label>
+                    <comment>Enter the notice message to display. HTML is not allowed for security.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="message_bold" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Bold Text</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="link_url" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Link URL (Optional)</label>
+                    <comment>Optional URL to link the message to. Leave empty for no link.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="link_text" translate="label comment" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Link Text (Optional)</label>
+                    <comment>Text for the link. If empty, the full message becomes the link.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="background_color" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Background Colour</label>
+                    <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\ColorPicker</frontend_model>
+                    <comment>Select the background colour for the notice box.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="text_color" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Text Colour</label>
+                    <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\ColorPicker</frontend_model>
+                    <comment>Select the text colour for the notice.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="start_datetime" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Start Date/Time (Optional)</label>
+                    <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\DateTime</frontend_model>
+                    <comment>Optional. Notice will show from this date/time. Leave empty to show immediately when enabled.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="end_datetime" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>End Date/Time (Optional)</label>
+                    <frontend_model>CravenDunnill\ProductTileCalculator\Block\Adminhtml\System\Config\DateTime</frontend_model>
+                    <comment>Optional. Notice will hide after this date/time. Leave empty for no end date.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
