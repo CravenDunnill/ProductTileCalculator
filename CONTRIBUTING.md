@@ -45,7 +45,7 @@ Please be respectful and constructive in all interactions. We aim to maintain a 
 3. Include:
    - Clear description
    - Steps to reproduce
-   - Expected vs actual behavior
+   - Expected vs actual behaviour
    - Environment details
    - Relevant logs/screenshots
 
